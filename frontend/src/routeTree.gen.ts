@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppIndexRouteImport } from './routes/app/index'
 import { Route as AuthRegisterRouteImport } from './routes/auth/register'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AppDashboardRouteImport } from './routes/app/dashboard'
@@ -34,6 +35,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRoute,
 } as any)
 const AuthRegisterRoute = AuthRegisterRouteImport.update({
   id: '/auth/register',
@@ -107,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/app/dashboard': typeof AppDashboardRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
+  '/app/': typeof AppIndexRoute
   '/app/account/profile': typeof AppAccountProfileRoute
   '/app/account/security': typeof AppAccountSecurityRoute
   '/app/cvs/new': typeof AppCvsNewRoute
@@ -120,10 +127,10 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/app': typeof AppRouteWithChildren
   '/app/dashboard': typeof AppDashboardRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
+  '/app': typeof AppIndexRoute
   '/app/account/profile': typeof AppAccountProfileRoute
   '/app/account/security': typeof AppAccountSecurityRoute
   '/app/cvs/new': typeof AppCvsNewRoute
@@ -142,6 +149,7 @@ export interface FileRoutesById {
   '/app/dashboard': typeof AppDashboardRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
+  '/app/': typeof AppIndexRoute
   '/app/account/profile': typeof AppAccountProfileRoute
   '/app/account/security': typeof AppAccountSecurityRoute
   '/app/cvs/new': typeof AppCvsNewRoute
@@ -161,6 +169,7 @@ export interface FileRouteTypes {
     | '/app/dashboard'
     | '/auth/login'
     | '/auth/register'
+    | '/app/'
     | '/app/account/profile'
     | '/app/account/security'
     | '/app/cvs/new'
@@ -174,10 +183,10 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/app'
     | '/app/dashboard'
     | '/auth/login'
     | '/auth/register'
+    | '/app'
     | '/app/account/profile'
     | '/app/account/security'
     | '/app/cvs/new'
@@ -195,6 +204,7 @@ export interface FileRouteTypes {
     | '/app/dashboard'
     | '/auth/login'
     | '/auth/register'
+    | '/app/'
     | '/app/account/profile'
     | '/app/account/security'
     | '/app/cvs/new'
@@ -229,6 +239,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/app/': {
+      id: '/app/'
+      path: '/'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
     }
     '/auth/register': {
       id: '/auth/register'
@@ -326,6 +343,7 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppDashboardRoute: typeof AppDashboardRoute
+  AppIndexRoute: typeof AppIndexRoute
   AppAccountProfileRoute: typeof AppAccountProfileRoute
   AppAccountSecurityRoute: typeof AppAccountSecurityRoute
   AppCvsNewRoute: typeof AppCvsNewRoute
@@ -340,6 +358,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppDashboardRoute: AppDashboardRoute,
+  AppIndexRoute: AppIndexRoute,
   AppAccountProfileRoute: AppAccountProfileRoute,
   AppAccountSecurityRoute: AppAccountSecurityRoute,
   AppCvsNewRoute: AppCvsNewRoute,

@@ -24,6 +24,12 @@ function NewCVPage() {
   const [phone, setPhone] = useState('')
   const [location, setLocation] = useState('')
   const [summary, setSummary] = useState('')
+  const [selectedSections, setSelectedSections] = useState<string[]>([
+    'work_experience',
+    'education',
+    'skills',
+    'projects',
+  ])
 
   const { mutate: createCV, isPending } = useCreateCV()
 
@@ -52,6 +58,7 @@ function NewCVPage() {
   }
 
   const handleSubmit = () => {
+    // We currently only persist base CV fields; section choices inform the editor onboarding
     createCV(
       {
         title,
@@ -63,9 +70,19 @@ function NewCVPage() {
       },
       {
         onSuccess: (data) => {
+          // Store initial section preference as a hint for editor onboarding
+          if (selectedSections.length) {
+            localStorage.setItem(`cv_sections_${data.id}`, JSON.stringify(selectedSections))
+          }
           navigate({ to: '/app/cvs/$id/edit', params: { id: data.id.toString() } })
         },
       }
+    )
+  }
+
+  const toggleSection = (key: string) => {
+    setSelectedSections((prev) =>
+      prev.includes(key) ? prev.filter((s) => s !== key) : [...prev, key],
     )
   }
 
@@ -195,37 +212,78 @@ function NewCVPage() {
                   rows={6}
                   className="resize-none"
                 />
-                <p className="text-xs text-muted-foreground">
-                  Tip: Focus on your key strengths and what you bring to employers.
-                  You can skip this and add it later.
-                </p>
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>Tip: Focus on your impact, stack, and outcomes.</span>
+                  <button
+                    type="button"
+                    className="text-primary underline underline-offset-4"
+                    onClick={() => setSummary('')}
+                  >
+                    Skip for now
+                  </button>
+                </div>
               </div>
             </div>
           )}
 
           {step === 3 && (
             <div className="space-y-4">
-              <div className="rounded-lg border p-4 space-y-3">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">CV Title</p>
-                  <p className="text-lg font-semibold">{title}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Name</p>
-                  <p>{fullName}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Contact</p>
-                  <p>{email}</p>
-                  {phone && <p>{phone}</p>}
-                  {location && <p>{location}</p>}
-                </div>
-                {summary && (
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="rounded-lg border p-4 space-y-3">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Summary</p>
-                    <p className="text-sm">{summary}</p>
+                    <p className="text-sm font-medium text-muted-foreground">CV Title</p>
+                    <p className="text-lg font-semibold">{title}</p>
                   </div>
-                )}
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Name</p>
+                    <p>{fullName}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Contact</p>
+                    <p>{email}</p>
+                    {phone && <p>{phone}</p>}
+                    {location && <p>{location}</p>}
+                  </div>
+                  {summary && (
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Summary</p>
+                      <p className="text-sm">{summary}</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="rounded-lg border p-4 space-y-3">
+                  <p className="text-sm font-medium">Choose sections to start with</p>
+                  <div className="grid gap-2">
+                    {[
+                      { key: 'work_experience', label: 'Work Experience', note: 'Recommended' },
+                      { key: 'education', label: 'Education', note: 'Recommended' },
+                      { key: 'skills', label: 'Skills', note: 'Optional' },
+                      { key: 'projects', label: 'Projects', note: 'Optional' },
+                    ].map((section) => (
+                      <label
+                        key={section.key}
+                        className={`flex items-center justify-between rounded-lg border px-3 py-2 ${
+                          selectedSections.includes(section.key) ? 'bg-primary/5 border-primary/40' : ''
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            checked={selectedSections.includes(section.key)}
+                            onChange={() => toggleSection(section.key)}
+                            className="h-4 w-4"
+                          />
+                          <span className="text-sm">{section.label}</span>
+                        </div>
+                        <span className="text-xs text-muted-foreground">{section.note}</span>
+                      </label>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    You can add/remove sections later in the editor.
+                  </p>
+                </div>
               </div>
 
               <p className="text-sm text-muted-foreground">

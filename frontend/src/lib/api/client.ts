@@ -26,6 +26,17 @@ class ApiClient {
     return localStorage.getItem('access_token')
   }
 
+  private handleUnauthorized() {
+    localStorage.removeItem('access_token')
+    localStorage.removeItem('user')
+    if (typeof window !== 'undefined') {
+      const currentPath = window.location.pathname
+      if (!currentPath.startsWith('/auth')) {
+        window.location.assign('/auth/login')
+      }
+    }
+  }
+
   private async request<T>(
     endpoint: string,
     options: RequestOptions = {},
@@ -78,6 +89,10 @@ class ApiClient {
         errorData = await response.json()
       } catch {
         errorData = await response.text()
+      }
+
+      if (response.status === 401) {
+        this.handleUnauthorized()
       }
 
       throw new ApiError(

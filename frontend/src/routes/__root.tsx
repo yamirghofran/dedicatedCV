@@ -97,21 +97,6 @@ const navMain: NavItem[] = [
         title: 'Create New',
         url: '/app/cvs/new',
       },
-      {
-        title: 'Editor',
-        url: '/app/cvs/$id/edit',
-        params: { id: 'demo' },
-      },
-      {
-        title: 'Preview',
-        url: '/app/cvs/$id/preview',
-        params: { id: 'demo' },
-      },
-      {
-        title: 'Export',
-        url: '/app/cvs/$id/export',
-        params: { id: 'demo' },
-      },
     ],
   },
   {
@@ -176,19 +161,36 @@ function RootComponent() {
     '/app/help/faq': 'FAQ',
   }
 
-  const breadcrumbs =
+  const breadcrumbs = (() => {
+    const crumbs: Array<{ label: string; to: string; isLast?: boolean }> = []
+    const cvTitleFromState = (routerState.location.state as any)?.cvTitle
+
     routerState.matches
       ?.filter((match) => match.routeId !== '__root__')
-      .map((match, index, arr) => {
+      .forEach((match) => {
         const id = (match as { routeId?: string; id?: string }).routeId ?? (match as { id?: string }).id ?? ''
         const params = (match as { params?: Record<string, string> }).params ?? {}
-        const label =
-          breadcrumbMap[id] ??
-          (params.id ? `CV ${params.id}` : 'Page')
         const to = (match as { pathname?: string }).pathname ?? routerState.location.pathname
-        const isLast = index === arr.length - 1
-        return { label, to, isLast }
-      }) ?? []
+
+        const isCvChild = params.id && id.includes('/cvs/$id/')
+
+        if (isCvChild) {
+          const cvLabel = cvTitleFromState || `CV ${params.id}`
+          crumbs.push({ label: cvLabel, to: `/app/cvs/${params.id}/edit` })
+        }
+
+        const label =
+          breadcrumbMap[id] ||
+          (isCvChild ? (cvTitleFromState || `CV ${params.id}`) : 'Page')
+
+        crumbs.push({ label, to })
+      })
+
+    return crumbs.map((crumb, idx) => ({
+      ...crumb,
+      isLast: idx === crumbs.length - 1,
+    }))
+  })()
 
   const handleLogout = () => {
     logout()

@@ -5,3 +5,7 @@
 
 export * from './auth.service'
 export * from './cv.service'
+export * from './work-experience.service'
+export * from './education.service'
+export * from './skill.service'
+export * from './project.service'

@@ -1,38 +1,111 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
-import { useCVs } from '@/hooks/use-cvs'
-import { useCurrentUser } from '@/hooks/use-auth'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { FileText, Plus, MoreVertical, Pencil, Trash2 } from 'lucide-react'
-import { useDeleteCV } from '@/hooks/use-cvs'
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useCVs, useCreateCV, useDeleteCV } from "@/hooks/use-cvs";
+import { useCurrentUser } from "@/hooks/use-auth";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  FileText,
+  Plus,
+  MoreVertical,
+  Pencil,
+  Trash2,
+  Copy,
+  Eye,
+} from "lucide-react";
+import { useMemo, useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/animate-ui/components/radix/dropdown-menu'
+} from "@/components/animate-ui/components/radix/dropdown-menu";
 
-export const Route = createFileRoute('/app/dashboard')({
+export const Route = createFileRoute("/app/dashboard")({
   component: DashboardPage,
-})
+});
 
 function DashboardPage() {
-  const { data: user } = useCurrentUser()
-  const { data: cvs, isLoading } = useCVs()
-  const { mutate: deleteCV } = useDeleteCV()
+  const { data: user } = useCurrentUser();
+  const { data: cvs, isLoading, isError } = useCVs();
+  const { mutate: deleteCV } = useDeleteCV();
+  const { mutate: createCV, isPending: isDuplicating } = useCreateCV();
+  const [message, setMessage] = useState<string | null>(null);
 
   const handleDelete = (id: number, title: string) => {
     if (confirm(`Delete "${title}"? This cannot be undone.`)) {
-      deleteCV(id)
+      deleteCV(id);
     }
-  }
+  };
+
+  const handleDuplicate = (cv: (typeof cvs)[number]) => {
+    createCV(
+      {
+        title: `${cv.title} (Copy)`,
+        full_name: cv.full_name,
+        email: cv.email,
+        phone: cv.phone ?? "",
+        location: cv.location ?? "",
+        summary: cv.summary ?? "",
+      },
+      {
+        onSuccess: () => {
+          setMessage(`Duplicated "${cv.title}"`);
+          setTimeout(() => setMessage(null), 2500);
+        },
+        onError: () => {
+          setMessage("Could not duplicate CV");
+          setTimeout(() => setMessage(null), 2500);
+        },
+      },
+    );
+  };
+
+  const emptyState = useMemo(() => {
+    if (isError) {
+      return (
+        <Card className="border-dashed">
+          <CardContent className="py-8 text-center text-sm text-destructive">
+            Unable to load CVs. Please retry.
+          </CardContent>
+        </Card>
+      );
+    }
+    return (
+      <Card className="border-dashed">
+        <CardContent className="flex flex-col items-center justify-center py-12">
+          <div className="p-4 bg-muted rounded-full mb-4">
+            <FileText className="h-12 w-12 text-muted-foreground" />
+          </div>
+          <h3 className="text-lg font-semibold mb-2">No CVs yet</h3>
+          <p className="text-muted-foreground text-center mb-4 max-w-sm">
+            Create your first professional resume to get started. It only takes
+            a few minutes!
+          </p>
+          <Link to="/app/cvs/new">
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              Create Your First CV
+            </Button>
+          </Link>
+        </CardContent>
+      </Card>
+    );
+  }, [isError]);
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">
-            Welcome back, {user?.full_name || user?.email?.split('@')[0] || 'there'}
+            Welcome back,{" "}
+            {user?.full_name || user?.email?.split("@")[0] || "there"}
           </h1>
           <p className="text-muted-foreground mt-1">
             Manage your professional resumes
@@ -49,6 +122,9 @@ function DashboardPage() {
       <div>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold">Your CVs</h2>
+          {message && (
+            <span className="text-sm text-muted-foreground">{message}</span>
+          )}
         </div>
 
         {isLoading ? (
@@ -84,26 +160,50 @@ function DashboardPage() {
                     </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                        >
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild>
                           <Link
+                            to="/app/cvs/$id/preview"
+                            params={{ id: cv.id.toString() }}
+                            state={{ cvTitle: cv.title }}
+                            className="cursor-pointer flex items-center gap-2"
+                          >
+                            <Eye className="h-4 w-4" />
+                            Preview
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleDuplicate(cv)}
+                          disabled={isDuplicating}
+                          className="cursor-pointer"
+                        >
+                          <Copy className="h-4 w-4 " />
+                          Duplicate
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link
                             to="/app/cvs/$id/edit"
                             params={{ id: cv.id.toString() }}
-                            className="cursor-pointer"
+                            state={{ cvTitle: cv.title }}
+                            className="cursor-pointer flex items-center gap-2"
                           >
-                            <Pencil className="h-4 w-4 mr-2" />
+                            <Pencil className="h-4 w-4" />
                             Edit
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleDelete(cv.id, cv.title)}
-                          className="text-destructive cursor-pointer"
+                          className="text-destructive cursor-pointer hover:!text-destructive"
                         >
-                          <Trash2 className="h-4 w-4 mr-2" />
+                          <Trash2 className="h-4 w-4 text-destructive " />
                           Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -122,10 +222,21 @@ function DashboardPage() {
                   <Link
                     to="/app/cvs/$id/edit"
                     params={{ id: cv.id.toString() }}
+                    state={{ cvTitle: cv.title }}
                     className="flex-1"
                   >
                     <Button variant="outline" className="w-full">
                       Edit
+                    </Button>
+                  </Link>
+                  <Link
+                    to="/app/cvs/$id/preview"
+                    params={{ id: cv.id.toString() }}
+                    state={{ cvTitle: cv.title }}
+                    className="flex-1"
+                  >
+                    <Button variant="outline" className="w-full">
+                      Preview
                     </Button>
                   </Link>
                 </CardFooter>
@@ -133,25 +244,9 @@ function DashboardPage() {
             ))}
           </div>
         ) : (
-          <Card className="border-dashed">
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <div className="p-4 bg-muted rounded-full mb-4">
-                <FileText className="h-12 w-12 text-muted-foreground" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">No CVs yet</h3>
-              <p className="text-muted-foreground text-center mb-4 max-w-sm">
-                Create your first professional resume to get started. It only takes a few minutes!
-              </p>
-              <Link to="/app/cvs/new">
-                <Button className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Create Your First CV
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
+          emptyState
         )}
       </div>
     </div>
-  )
+  );
 }
