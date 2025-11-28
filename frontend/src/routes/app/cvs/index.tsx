@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useCVs, useCreateCV, useDeleteCV } from '@/hooks/use-cvs'
+import type { CV } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Plus, FileText, MoreVertical, Pencil, Trash2, Copy, Eye } from 'lucide-react'
@@ -27,7 +28,7 @@ function CVListPage() {
     }
   }
 
-  const handleDuplicate = (cv: (typeof cvs)[number]) => {
+  const handleDuplicate = (cv: CV) => {
     createCV(
       {
         title: `${cv.title} (Copy)`,
@@ -137,11 +138,10 @@ function CVListPage() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem asChild>
+                      <DropdownMenuItem>
                         <Link
                           to="/app/cvs/$id/preview"
                           params={{ id: cv.id.toString() }}
-                          state={{ cvTitle: cv.title }}
                           className="cursor-pointer flex items-center gap-2"
                         >
                           <Eye className="h-4 w-4" />
@@ -156,11 +156,10 @@ function CVListPage() {
                         <Copy className="h-4 w-4 mr-2" />
                         Duplicate
                       </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
+                      <DropdownMenuItem>
                         <Link
                           to="/app/cvs/$id/edit"
                           params={{ id: cv.id.toString() }}
-                          state={{ cvTitle: cv.title }}
                           className="cursor-pointer flex items-center gap-2"
                         >
                           <Pencil className="h-4 w-4" />
@@ -190,7 +189,6 @@ function CVListPage() {
                 <Link
                   to="/app/cvs/$id/edit"
                   params={{ id: cv.id.toString() }}
-                  state={{ cvTitle: cv.title }}
                   className="flex-1"
                 >
                   <Button variant="outline" className="w-full">
@@ -200,7 +198,6 @@ function CVListPage() {
                 <Link
                   to="/app/cvs/$id/preview"
                   params={{ id: cv.id.toString() }}
-                  state={{ cvTitle: cv.title }}
                   className="flex-1"
                 >
                   <Button variant="outline" className="w-full">

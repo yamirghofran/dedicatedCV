@@ -20,6 +20,7 @@ import {
   Eye,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import type { CV } from "@/lib/api";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,7 +45,7 @@ function DashboardPage() {
     }
   };
 
-  const handleDuplicate = (cv: (typeof cvs)[number]) => {
+  const handleDuplicate = (cv: CV) => {
     createCV(
       {
         title: `${cv.title} (Copy)`,
@@ -169,11 +170,10 @@ function DashboardPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild>
+                        <DropdownMenuItem>
                           <Link
                             to="/app/cvs/$id/preview"
                             params={{ id: cv.id.toString() }}
-                            state={{ cvTitle: cv.title }}
                             className="cursor-pointer flex items-center gap-2"
                           >
                             <Eye className="h-4 w-4" />
@@ -188,11 +188,10 @@ function DashboardPage() {
                           <Copy className="h-4 w-4 " />
                           Duplicate
                         </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
+                        <DropdownMenuItem>
                           <Link
                             to="/app/cvs/$id/edit"
                             params={{ id: cv.id.toString() }}
-                            state={{ cvTitle: cv.title }}
                             className="cursor-pointer flex items-center gap-2"
                           >
                             <Pencil className="h-4 w-4" />
@@ -222,7 +221,6 @@ function DashboardPage() {
                   <Link
                     to="/app/cvs/$id/edit"
                     params={{ id: cv.id.toString() }}
-                    state={{ cvTitle: cv.title }}
                     className="flex-1"
                   >
                     <Button variant="outline" className="w-full">
@@ -232,7 +230,6 @@ function DashboardPage() {
                   <Link
                     to="/app/cvs/$id/preview"
                     params={{ id: cv.id.toString() }}
-                    state={{ cvTitle: cv.title }}
                     className="flex-1"
                   >
                     <Button variant="outline" className="w-full">

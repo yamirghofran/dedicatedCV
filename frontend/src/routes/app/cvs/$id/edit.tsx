@@ -20,7 +20,7 @@ import {
   useProjectMutations,
 } from "@/hooks/use-cv-sections";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Eye, Download } from "lucide-react";
+import { Eye, Download } from "lucide-react";
 
 export const Route = createFileRoute("/app/cvs/$id/edit")({
   component: CVEditor,
@@ -108,9 +108,9 @@ function CVEditor() {
           title: form.title,
           full_name: form.full_name,
           email: form.email,
-          phone: form.phone || null,
-          location: form.location || null,
-          summary: form.summary || null,
+        phone: form.phone || undefined,
+        location: form.location || undefined,
+        summary: form.summary || undefined,
         },
       },
       {
@@ -124,7 +124,7 @@ function CVEditor() {
       },
     );
   };
-  const scrollTo = (ref: React.RefObject<HTMLElement>) => {
+  const scrollTo = (ref: React.RefObject<HTMLElement | null>) => {
     ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
@@ -160,13 +160,13 @@ function CVEditor() {
           )}
         </div>
         <div className="flex gap-2">
-          <Link to="/app/cvs/$id/preview" params={{ id: cv.id.toString() }} state={{ cvTitle: cv.title }}>
+          <Link to="/app/cvs/$id/preview" params={{ id: cv.id.toString() }}>
             <Button variant="outline" className="gap-2">
               <Eye className="h-4 w-4" />
               Preview
             </Button>
           </Link>
-          <Link to="/app/cvs/$id/export" params={{ id: cv.id.toString() }} state={{ cvTitle: cv.title }}>
+          <Link to="/app/cvs/$id/export" params={{ id: cv.id.toString() }}>
             <Button variant="outline" className="gap-2">
               <Download className="h-4 w-4" />
               Export

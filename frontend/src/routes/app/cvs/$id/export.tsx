@@ -63,8 +63,8 @@ function CVExportPlaceholder() {
         scale: 2,
         backgroundColor: '#ffffff',
         useCORS: true,
-        onclone: (doc) => {
-          doc.querySelectorAll('style').forEach((style) => {
+        onclone: (doc: Document) => {
+          doc.querySelectorAll('style').forEach((style: HTMLStyleElement) => {
             if (style.textContent?.includes('oklch')) {
               style.remove()
             }

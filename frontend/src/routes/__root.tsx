@@ -328,7 +328,7 @@ function RootComponent() {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuGroup>
-                    <DropdownMenuItem asChild>
+                    <DropdownMenuItem>
                       <Link to="/app/account/profile">
                         <span className="flex items-center gap-2">
                           <span>Account</span>

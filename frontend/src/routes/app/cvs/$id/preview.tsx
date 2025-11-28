@@ -71,7 +71,7 @@ function CVPreviewPlaceholder() {
           </div>
         </div>
         <div className="flex gap-2">
-        <Link to="/app/cvs/$id/edit" params={{ id }} state={{ cvTitle: cv.title }}>
+        <Link to="/app/cvs/$id/edit" params={{ id }}>
           <Button variant="outline" className="gap-2">
             <ArrowLeft className="h-4 w-4" />
             Back to editor
@@ -80,7 +80,6 @@ function CVPreviewPlaceholder() {
           <Link
             to="/app/cvs/$id/export"
             params={{ id }}
-            state={{ cvTitle: cv.title }}
           >
             <Button className="gap-2">
               <Download className="h-4 w-4" />

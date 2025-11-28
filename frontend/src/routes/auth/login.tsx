@@ -1,43 +1,38 @@
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
-import { useLogin } from '@/hooks/use-auth'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { FileText } from 'lucide-react'
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
+import { useLogin } from "@/hooks/use-auth";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
-export const Route = createFileRoute('/auth/login')({
+export const Route = createFileRoute("/auth/login")({
   component: LoginPage,
-})
+});
 
 function LoginPage() {
-  const navigate = useNavigate()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  const { mutate: login, isPending, error } = useLogin()
+  const { mutate: login, isPending, error } = useLogin();
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     login(
       { username: email, password },
       {
         onSuccess: () => {
-          navigate({ to: '/app/dashboard' })
+          navigate({ to: "/app/dashboard" });
         },
-      }
-    )
-  }
+      },
+    );
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-md space-y-8">
         <div className="flex flex-col items-center space-y-2 text-center">
-          <div className="flex items-center gap-2">
-            <FileText className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-bold">CV Maker</span>
-          </div>
           <h1 className="text-3xl font-bold">Welcome Back</h1>
           <p className="text-muted-foreground">
             Sign in to continue building your resume
@@ -78,11 +73,11 @@ function LoginPage() {
           )}
 
           <Button type="submit" className="w-full" disabled={isPending}>
-            {isPending ? 'Signing In...' : 'Sign In'}
+            {isPending ? "Signing In..." : "Sign In"}
           </Button>
 
           <p className="text-center text-sm text-muted-foreground">
-            Don't have an account?{' '}
+            Don't have an account?{" "}
             <Link
               to="/auth/register"
               className="font-medium text-primary hover:underline"
@@ -93,5 +88,5 @@ function LoginPage() {
         </form>
       </div>
     </div>
-  )
+  );
 }
