@@ -16,9 +16,12 @@ class CVBase(BaseModel):
 
 
 class CVCreate(CVBase):
-    """Schema for creating a CV."""
+    """Schema for creating a CV.
 
-    user_id: int  # Required for creation (no auth)
+    Note: user_id is automatically set from authenticated user.
+    """
+
+    pass
 
 
 class CVUpdate(BaseModel):

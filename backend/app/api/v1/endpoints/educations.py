@@ -3,8 +3,11 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.core.deps import get_current_user
 from app.db.base import get_db
+from app.models.cv import CV
 from app.models.education import Education
+from app.models.user import User
 from app.schemas.education import (
     Education as EducationSchema,
     EducationCreate,
@@ -14,9 +17,26 @@ from app.schemas.education import (
 router = APIRouter()
 
 
+def verify_cv_ownership(cv_id: int, user_id: int, db: Session) -> CV:
+    """Verify that the CV belongs to the user."""
+    cv = db.query(CV).filter(CV.id == cv_id, CV.user_id == user_id).first()
+    if not cv:
+        raise HTTPException(
+            status_code=403,
+            detail="CV not found or you don't have access to this CV",
+        )
+    return cv
+
+
 @router.post("/", response_model=EducationSchema, status_code=status.HTTP_201_CREATED)
-def create_education(education_in: EducationCreate, db: Session = Depends(get_db)):
-    """Create a new education entry."""
+def create_education(
+    education_in: EducationCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Create a new education entry (only for user's own CV)."""
+    verify_cv_ownership(education_in.cv_id, current_user.id, db)
+
     education = Education(**education_in.model_dump())
     db.add(education)
     db.commit()
@@ -24,35 +44,34 @@ def create_education(education_in: EducationCreate, db: Session = Depends(get_db
     return education
 
 
-@router.get("/cv/{cv_id}", response_model=List[EducationSchema])
-def list_cv_educations(cv_id: int, db: Session = Depends(get_db)):
-    """List all education entries for a specific CV."""
-    educations = (
-        db.query(Education)
-        .filter(Education.cv_id == cv_id)
-        .order_by(Education.display_order)
-        .all()
-    )
-    return educations
-
-
 @router.get("/{education_id}", response_model=EducationSchema)
-def get_education(education_id: int, db: Session = Depends(get_db)):
-    """Get a specific education entry."""
+def get_education(
+    education_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Get a specific education entry (only if user owns the CV)."""
     education = db.query(Education).filter(Education.id == education_id).first()
     if not education:
         raise HTTPException(status_code=404, detail="Education not found")
+
+    verify_cv_ownership(education.cv_id, current_user.id, db)
     return education
 
 
 @router.put("/{education_id}", response_model=EducationSchema)
 def update_education(
-    education_id: int, education_in: EducationUpdate, db: Session = Depends(get_db)
+    education_id: int,
+    education_in: EducationUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    """Update an education entry."""
+    """Update an education entry (only if user owns the CV)."""
     education = db.query(Education).filter(Education.id == education_id).first()
     if not education:
         raise HTTPException(status_code=404, detail="Education not found")
+
+    verify_cv_ownership(education.cv_id, current_user.id, db)
 
     update_data = education_in.model_dump(exclude_unset=True)
     for field, value in update_data.items():
@@ -64,11 +83,17 @@ def update_education(
 
 
 @router.delete("/{education_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_education(education_id: int, db: Session = Depends(get_db)):
-    """Delete an education entry."""
+def delete_education(
+    education_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Delete an education entry (only if user owns the CV)."""
     education = db.query(Education).filter(Education.id == education_id).first()
     if not education:
         raise HTTPException(status_code=404, detail="Education not found")
+
+    verify_cv_ownership(education.cv_id, current_user.id, db)
 
     db.delete(education)
     db.commit()
