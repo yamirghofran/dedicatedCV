@@ -87,16 +87,21 @@ function NewCVPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Create New CV</h1>
+        <p className="text-sm text-muted-foreground uppercase tracking-wide">
+          Create New CV
+        </p>
+        <h1 className="text-3xl font-bold">
+          {step === 1 ? 'Basic Information' : step === 2 ? 'Professional Summary' : 'Review & Create'}
+        </h1>
         <p className="text-muted-foreground mt-1">
-          Step {step} of 3: {step === 1 ? 'Basic Information' : step === 2 ? 'Professional Summary' : 'Review & Create'}
+          Step {step} of 3
         </p>
       </div>
 
       {/* Progress bar */}
-      <div className="flex gap-2">
+      <div className="flex gap-2 max-w-md">
         {[1, 2, 3].map((s) => (
           <div
             key={s}
@@ -107,7 +112,7 @@ function NewCVPage() {
         ))}
       </div>
 
-      <Card>
+      <Card className="max-w-4xl">
         <CardHeader>
           <CardTitle>
             {step === 1 && 'Who are you?'}
