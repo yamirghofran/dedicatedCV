@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { DatePicker } from "@/components/ui/date-picker";
 import { useCV, useUpdateCV } from "@/hooks/use-cvs";
 import {
   useWorkExperienceMutations,
@@ -423,17 +424,16 @@ function WorkList({
           value={draft.location}
           onChange={(e) => setDraft({ ...draft, location: e.target.value })}
         />
-        <Label className="text-xs">Dates</Label>
         <div className="grid grid-cols-2 gap-2">
-          <Input
+          <DatePicker
+            label="Start date"
             value={draft.start_date}
-            onChange={(e) => setDraft({ ...draft, start_date: e.target.value })}
-            placeholder="Start YYYY-MM-DD"
+            onChange={(value) => setDraft({ ...draft, start_date: value })}
           />
-          <Input
+          <DatePicker
+            label="End date"
             value={draft.end_date}
-            onChange={(e) => setDraft({ ...draft, end_date: e.target.value })}
-            placeholder="End YYYY-MM-DD"
+            onChange={(value) => setDraft({ ...draft, end_date: value })}
           />
         </div>
         <Label className="text-xs">Description</Label>
@@ -540,17 +540,16 @@ function EducationList({
           value={draft.degree}
           onChange={(e) => setDraft({ ...draft, degree: e.target.value })}
         />
-        <Label className="text-xs">Dates</Label>
         <div className="grid grid-cols-2 gap-2">
-          <Input
+          <DatePicker
+            label="Start date"
             value={draft.start_date}
-            onChange={(e) => setDraft({ ...draft, start_date: e.target.value })}
-            placeholder="Start YYYY-MM-DD"
+            onChange={(value) => setDraft({ ...draft, start_date: value })}
           />
-          <Input
+          <DatePicker
+            label="End date"
             value={draft.end_date}
-            onChange={(e) => setDraft({ ...draft, end_date: e.target.value })}
-            placeholder="End YYYY-MM-DD"
+            onChange={(value) => setDraft({ ...draft, end_date: value })}
           />
         </div>
         <Button
