@@ -109,9 +109,9 @@ function CVEditor() {
           title: form.title,
           full_name: form.full_name,
           email: form.email,
-        phone: form.phone || undefined,
-        location: form.location || undefined,
-        summary: form.summary || undefined,
+          phone: form.phone || undefined,
+          location: form.location || undefined,
+          summary: form.summary || undefined,
         },
       },
       {
@@ -189,34 +189,7 @@ function CVEditor() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="md:col-span-1">
-          <CardHeader>
-            <CardTitle>Sections</CardTitle>
-            <CardDescription>Jump to any part of your CV.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm text-muted-foreground">
-            <button onClick={() => scrollTo(personalRef)} className="w-full text-left hover:text-foreground">
-              Personal Information
-            </button>
-            <button onClick={() => scrollTo(personalRef)} className="w-full text-left hover:text-foreground">
-              Professional Summary
-            </button>
-            <button onClick={() => scrollTo(workRef)} className="w-full text-left hover:text-foreground">
-              Work Experience
-            </button>
-            <button onClick={() => scrollTo(educationRef)} className="w-full text-left hover:text-foreground">
-              Education
-            </button>
-            <button onClick={() => scrollTo(skillsRef)} className="w-full text-left hover:text-foreground">
-              Skills
-            </button>
-            <button onClick={() => scrollTo(projectsRef)} className="w-full text-left hover:text-foreground">
-              Projects
-            </button>
-          </CardContent>
-        </Card>
-
+      <div className="grid ">
         <Card className="md:col-span-2" ref={personalRef}>
           <CardHeader>
             <CardTitle>Personal & Summary</CardTitle>
