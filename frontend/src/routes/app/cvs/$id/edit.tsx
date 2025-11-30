@@ -125,9 +125,9 @@ function CVEditor() {
       },
     );
   };
-  const scrollTo = (ref: React.RefObject<HTMLElement | null>) => {
-    ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
+  // const scrollTo = (ref: React.RefObject<HTMLElement | null>) => {
+  //   ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  // }; - error declared but not used.
 
   if (isLoading || !cv) {
     return (
