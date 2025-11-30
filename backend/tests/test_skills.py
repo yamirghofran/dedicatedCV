@@ -2,8 +2,6 @@
 Tests for skill endpoints.
 """
 
-import pytest
-
 
 class TestCreateSkill:
     """Tests for creating skills."""

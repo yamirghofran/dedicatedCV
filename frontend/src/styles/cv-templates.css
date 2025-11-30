@@ -1,37 +1,37 @@
 .cv-template {
-  font-family: "Geist", sans-serif;
-  color: #111827;
-  background: white;
+	font-family: "Geist", sans-serif;
+	color: #111827;
+	background: white;
 }
 
 .cv-template .section-title {
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  font-size: 12px;
-  text-transform: uppercase;
-  margin-bottom: 8px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	font-size: 12px;
+	text-transform: uppercase;
+	margin-bottom: 8px;
 }
 
 .cv-template ul {
-  padding-left: 16px;
-  margin: 0;
+	padding-left: 16px;
+	margin: 0;
 }
 
 .cv-template li {
-  margin-bottom: 4px;
+	margin-bottom: 4px;
 }
 
 /* Template-specific layout is now inline-styled in components to avoid CSS parsing issues during export */
 
 @media print {
-  body {
-    background: white;
-  }
-  .no-print {
-    display: none !important;
-  }
-  .cv-template {
-    box-shadow: none !important;
-    border: none !important;
-  }
+	body {
+		background: white;
+	}
+	.no-print {
+		display: none !important;
+	}
+	.cv-template {
+		box-shadow: none !important;
+		border: none !important;
+	}
 }

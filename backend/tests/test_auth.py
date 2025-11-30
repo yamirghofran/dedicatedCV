@@ -2,8 +2,6 @@
 Tests for authentication endpoints.
 """
 
-import pytest
-
 
 class TestRegistration:
     """Tests for user registration."""

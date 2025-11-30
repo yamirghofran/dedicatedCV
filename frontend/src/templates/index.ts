@@ -1,3 +1,3 @@
-export { ClassicTemplate } from './ClassicTemplate'
-export { ModernTemplate } from './ModernTemplate'
-export { MinimalTemplate } from './MinimalTemplate'
+export { ClassicTemplate } from "./ClassicTemplate";
+export { MinimalTemplate } from "./MinimalTemplate";
+export { ModernTemplate } from "./ModernTemplate";

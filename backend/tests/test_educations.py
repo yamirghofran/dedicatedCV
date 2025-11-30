@@ -2,8 +2,6 @@
 Tests for education endpoints.
 """
 
-import pytest
-
 
 class TestCreateEducation:
     """Tests for creating education entries."""
@@ -141,7 +139,8 @@ class TestGetEducation:
         response = client.get(f"/api/v1/educations/{test_education.id}")
         assert response.status_code == 401
 
-    def test_get_education_unauthorized(self, client, auth_headers_user2, test_education
+    def test_get_education_unauthorized(
+        self, client, auth_headers_user2, test_education
     ):
         """Test getting another user's education."""
         response = client.get(

@@ -1,6 +1,6 @@
-from typing import Annotated, List
+from typing import List
 
-from pydantic import BeforeValidator, field_validator
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 

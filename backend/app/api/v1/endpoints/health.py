@@ -12,7 +12,7 @@ router = APIRouter()
 def health_check(db: Session = Depends(get_db)):
     """
     Health check endpoint.
-    
+
     Returns application health status including:
     - Application info (name, version)
     - Database connection status
@@ -27,7 +27,7 @@ def health_check(db: Session = Depends(get_db)):
 
     # Get monitoring status
     monitoring_status = get_monitoring_status()
-    
+
     # Determine overall status
     overall_status = "healthy" if db_status == "healthy" else "unhealthy"
 
@@ -43,5 +43,5 @@ def health_check(db: Session = Depends(get_db)):
             "telemetry_sent": monitoring_status.get("telemetry_sent", False),
             "packages_available": monitoring_status.get("available", False),
             "initialization_error": monitoring_status.get("initialization_error"),
-        }
+        },
     }
