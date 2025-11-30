@@ -111,7 +111,7 @@ class AzureInsightsMonitoring:
 
     def _setup_custom_metrics(self):
         """Set up custom metrics for monitoring."""
-        if not self.enabled and not AZURE_INSIGHTS_AVAILABLE:
+        if not AZURE_INSIGHTS_AVAILABLE:
             return
             
         try:
@@ -159,7 +159,7 @@ class AzureInsightsMonitoring:
 
     def _setup_logging(self):
         """Set up Azure logging handler."""
-        if not self.enabled:
+        if not AZURE_INSIGHTS_AVAILABLE:
             return
             
         try:
