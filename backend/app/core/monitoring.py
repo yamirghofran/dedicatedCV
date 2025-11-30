@@ -2,26 +2,19 @@
 
 import logging
 import time
-from typing import Callable, Optional
+from typing import Callable, Optional, Any
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
-# Azure Application Insights imports
+# Azure Application Insights imports using OpenTelemetry
 try:
-    from opencensus.ext.azure import metrics_exporter
-    from opencensus.ext.azure.log_exporter import AzureLogHandler
-    from opencensus.ext.azure.trace_exporter import AzureExporter
-    from opencensus.stats import aggregation as aggregation_module
-    from opencensus.stats import measure as measure_module
-    from opencensus.stats import stats as stats_module
-    from opencensus.stats import view as view_module
-    from opencensus.tags import tag_map as tag_map_module
-    from opencensus.trace import config_integration
-    from opencensus.trace.samplers import ProbabilitySampler
-    from opencensus.trace.tracer import Tracer
-    from opencensus.trace import execution_context
-
+    from azure.monitor.opentelemetry import configure_azure_monitor
+    from opentelemetry import trace, metrics
+    from opentelemetry.trace import Status, StatusCode
+    from opentelemetry.metrics import get_meter_provider
+    from opentelemetry.trace import get_tracer_provider
+    
     AZURE_INSIGHTS_AVAILABLE = True
 except ImportError:
     AZURE_INSIGHTS_AVAILABLE = False
@@ -37,18 +30,17 @@ class AzureInsightsMonitoring:
     def __init__(self):
         """Initialize Azure Insights monitoring."""
         self.enabled = False
-        self.connection_string = None
-        self.exporter = None
-        self.metrics_exporter = None
-        self.tracer = None
-        self.stats_recorder = None
+        self.connection_string: Optional[str] = None
+        self.tracer: Any = None
+        self.meter: Any = None
         
         # Custom metrics
-        self.request_measure = None
-        self.error_measure = None
+        self.request_duration_histogram: Any = None
+        self.request_counter: Any = None
+        self.error_counter: Any = None
         
         # Status tracking
-        self.initialization_error = None
+        self.initialization_error: Optional[str] = None
         self.telemetry_sent = False
 
     def initialize(self, connection_string: str) -> bool:
@@ -65,7 +57,7 @@ class AzureInsightsMonitoring:
             self.initialization_error = "Azure Insights packages not installed"
             logger.warning(
                 "Azure Application Insights packages not available. "
-                "Install with: uv pip install opencensus-ext-azure opencensus-ext-fastapi"
+                "Install with: uv pip install azure-monitor-opentelemetry"
             )
             return False
 
@@ -77,28 +69,18 @@ class AzureInsightsMonitoring:
         try:
             self.connection_string = connection_string
             
-            # Initialize trace exporter
-            self.exporter = AzureExporter(connection_string=connection_string)
-            
-            # Initialize metrics exporter
-            self.metrics_exporter = metrics_exporter.new_metrics_exporter(
-                connection_string=connection_string
+            # Configure Azure Monitor with OpenTelemetry
+            configure_azure_monitor(  # type: ignore
+                connection_string=connection_string,
+                logger_name="app",
             )
             
-            # Configure integrations for automatic tracking
-            config_integration.trace_integrations(['requests', 'sqlalchemy', 'logging'])
-            
-            # Initialize tracer with sampling (100% for now, adjust in production)
-            self.tracer = Tracer(
-                exporter=self.exporter,
-                sampler=ProbabilitySampler(1.0)
-            )
+            # Get tracer and meter
+            self.tracer = trace.get_tracer(__name__)  # type: ignore
+            self.meter = metrics.get_meter(__name__)  # type: ignore
             
             # Set up custom metrics
             self._setup_custom_metrics()
-            
-            # Configure logging handler
-            self._setup_logging()
             
             self.enabled = True
             logger.info("Azure Application Insights initialized successfully")
@@ -111,71 +93,33 @@ class AzureInsightsMonitoring:
 
     def _setup_custom_metrics(self):
         """Set up custom metrics for monitoring."""
-        if not AZURE_INSIGHTS_AVAILABLE:
+        if not AZURE_INSIGHTS_AVAILABLE or not self.meter:
             return
             
         try:
-            # Get stats recorder
-            self.stats_recorder = stats_module.stats.stats_recorder
-            
-            # Create custom measures
-            self.request_measure = measure_module.MeasureFloat(
-                "request_duration",
-                "Duration of HTTP requests",
-                "ms"
+            # Create histogram for request duration
+            self.request_duration_histogram = self.meter.create_histogram(
+                name="http.server.request.duration",
+                description="Duration of HTTP requests",
+                unit="ms"
             )
             
-            self.error_measure = measure_module.MeasureInt(
-                "request_errors",
-                "Number of failed requests",
-                "errors"
+            # Create counter for total requests
+            self.request_counter = self.meter.create_counter(
+                name="http.server.request.count",
+                description="Total number of HTTP requests",
+                unit="requests"
             )
             
-            # Create views for aggregation
-            request_view = view_module.View(
-                "request_duration_view",
-                "Distribution of HTTP request durations",
-                ["endpoint", "method", "status"],
-                self.request_measure,
-                aggregation_module.DistributionAggregation([50, 100, 200, 400, 1000, 2000, 5000])
+            # Create counter for errors
+            self.error_counter = self.meter.create_counter(
+                name="http.server.request.errors",
+                description="Number of failed HTTP requests",
+                unit="errors"
             )
-            
-            error_view = view_module.View(
-                "request_errors_view",
-                "Count of HTTP request errors",
-                ["endpoint", "method", "status"],
-                self.error_measure,
-                aggregation_module.CountAggregation()
-            )
-            
-            # Register views
-            view_manager = self.stats_recorder.view_manager
-            view_manager.register_view(request_view)
-            view_manager.register_view(error_view)
-            view_manager.register_exporter(self.metrics_exporter)
             
         except Exception as e:
             logger.error(f"Failed to set up custom metrics: {e}")
-
-    def _setup_logging(self):
-        """Set up Azure logging handler."""
-        if not AZURE_INSIGHTS_AVAILABLE:
-            return
-            
-        try:
-            # Add Azure handler to root logger
-            azure_handler = AzureLogHandler(connection_string=self.connection_string)
-            azure_handler.setLevel(logging.WARNING)  # Only log warnings and errors
-            
-            # Add handler to root logger
-            logging.getLogger().addHandler(azure_handler)
-            
-            # Add handler to app logger
-            app_logger = logging.getLogger("app")
-            app_logger.addHandler(azure_handler)
-            
-        except Exception as e:
-            logger.error(f"Failed to set up Azure logging: {e}")
 
     def track_request(
         self,
@@ -195,25 +139,29 @@ class AzureInsightsMonitoring:
             duration_ms: Request duration in milliseconds
             success: Whether the request was successful
         """
-        if not self.enabled or not self.stats_recorder:
+        if not self.enabled:
             return
             
         try:
-            # Create tag map with custom dimensions
-            tag_map = tag_map_module.TagMap()
-            tag_map.insert("endpoint", endpoint)
-            tag_map.insert("method", method)
-            tag_map.insert("status", str(status_code))
+            # Common attributes for all metrics
+            attributes = {
+                "http.route": endpoint,
+                "http.method": method,
+                "http.status_code": status_code,
+            }
             
             # Record request duration
-            measurement_map = self.stats_recorder.new_measurement_map()
-            measurement_map.measure_float_put(self.request_measure, duration_ms)
+            if self.request_duration_histogram:
+                self.request_duration_histogram.record(duration_ms, attributes)
+            
+            # Record request count
+            if self.request_counter:
+                self.request_counter.add(1, attributes)
             
             # Record error if request failed
-            if not success:
-                measurement_map.measure_int_put(self.error_measure, 1)
+            if not success and self.error_counter:
+                self.error_counter.add(1, attributes)
             
-            measurement_map.record(tag_map)
             self.telemetry_sent = True
             
         except Exception as e:
@@ -231,12 +179,20 @@ class AzureInsightsMonitoring:
             return
             
         try:
-            # Log exception with Azure handler
+            # Log exception which will be sent to Azure Monitor
             logger.error(
                 f"Exception occurred: {type(exception).__name__}",
                 exc_info=exception,
-                extra={"custom_dimensions": properties or {}}
+                extra=properties or {}
             )
+            
+            # Also record in current span if available
+            if AZURE_INSIGHTS_AVAILABLE:
+                span = trace.get_current_span()  # type: ignore
+                if span and span.is_recording():
+                    span.record_exception(exception)
+                    span.set_status(Status(StatusCode.ERROR, str(exception)))  # type: ignore
+            
             self.telemetry_sent = True
             
         except Exception as e:
@@ -256,8 +212,15 @@ class AzureInsightsMonitoring:
         try:
             logger.info(
                 f"Event: {name}",
-                extra={"custom_dimensions": properties or {}}
+                extra=properties or {}
             )
+            
+            # Add event to current span if available
+            if AZURE_INSIGHTS_AVAILABLE:
+                span = trace.get_current_span()  # type: ignore
+                if span and span.is_recording():
+                    span.add_event(name, attributes=properties or {})
+            
             self.telemetry_sent = True
             
         except Exception as e:
@@ -269,11 +232,16 @@ class AzureInsightsMonitoring:
             return
             
         try:
-            if self.exporter:
-                self.exporter.export([])  # Flush trace exporter
-            if self.metrics_exporter:
-                # Metrics are auto-flushed, but we can trigger a collection
-                pass
+            # OpenTelemetry auto-flushes, but we can force flush if needed
+            if AZURE_INSIGHTS_AVAILABLE:
+                tracer_provider = get_tracer_provider()  # type: ignore
+                if hasattr(tracer_provider, 'force_flush'):
+                    tracer_provider.force_flush()  # type: ignore
+                
+                meter_provider = get_meter_provider()  # type: ignore
+                if hasattr(meter_provider, 'force_flush'):
+                    meter_provider.force_flush()  # type: ignore
+            
             logger.info("Flushed Azure Application Insights telemetry")
             
         except Exception as e:
