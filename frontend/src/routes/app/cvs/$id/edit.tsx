@@ -99,32 +99,35 @@ function CVEditor() {
 			setForm((prev) => ({ ...prev, [key]: e.target.value }));
 		};
 
-	const handleSave = () => {
-		if (!cv) return;
-		setAutoSaveStatus("saving");
-		updateCV(
-			{
-				id: cv.id,
-				data: {
-					title: form.title,
-					full_name: form.full_name,
-					email: form.email,
-					phone: form.phone || undefined,
-					location: form.location || undefined,
-					summary: form.summary || undefined,
-				},
-			},
-			{
-				onSuccess: () => {
-					setAutoSaveStatus("saved");
-					setTimeout(() => setAutoSaveStatus("idle"), 1500);
-				},
-				onError: () => {
-					setAutoSaveStatus("idle");
-				},
-			},
-		);
-	};
+  const handleSave = () => {
+    if (!cv) return;
+    setAutoSaveStatus("saving");
+    updateCV(
+      {
+        id: cv.id,
+        data: {
+          title: form.title,
+          full_name: form.full_name,
+          email: form.email,
+          phone: form.phone || undefined,
+          location: form.location || undefined,
+          summary: form.summary || undefined,
+        },
+      },
+      {
+        onSuccess: () => {
+          setAutoSaveStatus("saved");
+          setTimeout(() => setAutoSaveStatus("idle"), 1500);
+        },
+        onError: () => {
+          setAutoSaveStatus("idle");
+        },
+      },
+    );
+  };
+  // const scrollTo = (ref: React.RefObject<HTMLElement | null>) => {
+  //   ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  // }; - error declared but not used.
 
 	if (isLoading || !cv) {
 		return (

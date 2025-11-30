@@ -18,5 +18,26 @@ services:
       timeout: 5s
       retries: 5
 
+  # Uncomment to run the FastAPI app in Docker
+  # app:
+  #   build: .
+  #   container_name: backend_app
+  #   environment:
+  #     DATABASE_URL: ${DATABASE_URL}
+  #     SECRET_KEY: ${SECRET_KEY}
+  #     POSTGRES_HOST: db
+  #     POSTGRES_PORT: 5432
+  #     POSTGRES_USER: ${POSTGRES_USER:-postgres}
+  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+  #     POSTGRES_DB: ${POSTGRES_DB:-backend_db}
+  #     APPLICATIONINSIGHTS_CONNECTION_STRING: ${APPLICATIONINSIGHTS_CONNECTION_STRING}
+  #     ENABLE_AZURE_INSIGHTS: ${ENABLE_AZURE_INSIGHTS:-False}
+  #   ports:
+  #     - "8000:8000"
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #   command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+
 volumes:
   postgres_data:

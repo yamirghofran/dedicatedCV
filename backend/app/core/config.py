@@ -49,6 +49,10 @@ class Settings(BaseSettings):
     # CORS - use plain string to avoid JSON parsing
     BACKEND_CORS_ORIGINS: str = ""
 
+    # Azure Application Insights
+    APPLICATIONINSIGHTS_CONNECTION_STRING: str = ""
+    ENABLE_AZURE_INSIGHTS: bool = False
+
     @field_validator("BACKEND_CORS_ORIGINS", mode="after")
     @classmethod
     def parse_cors(cls, v: str) -> List[str]:
