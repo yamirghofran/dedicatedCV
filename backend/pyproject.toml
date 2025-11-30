@@ -19,6 +19,11 @@ dependencies = [
     "email-validator>=2.2.0",
     "bcrypt>=5.0.0",
     "argon2-cffi>=25.1.0",
+    "opencensus-ext-azure>=1.1.13",
+    "opencensus-ext-fastapi>=0.1.1",
+    "opencensus-ext-sqlalchemy>=0.1.4",
+    "opencensus-ext-requests>=0.8.0",
+    "opencensus-ext-logging>=0.1.1",
 ]
 
 [project.optional-dependencies]
