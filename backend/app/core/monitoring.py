@@ -5,7 +5,6 @@ import time
 from typing import Callable, Optional, Any
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.types import ASGIApp
 
 # Azure Application Insights imports using OpenTelemetry
 try:
@@ -290,14 +289,12 @@ class MonitoringMiddleware(BaseHTTPMiddleware):
         
         # Process request
         response = None
-        exception = None
         
         try:
             response = await call_next(request)
             return response
             
         except Exception as e:
-            exception = e
             # Track exception
             monitoring.track_exception(
                 e,
