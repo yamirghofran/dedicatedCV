@@ -3,7 +3,6 @@ Tests for work experience endpoints.
 """
 
 
-
 class TestCreateWorkExperience:
     """Tests for creating work experiences."""
 

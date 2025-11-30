@@ -3,7 +3,6 @@ Tests for project endpoints.
 """
 
 
-
 class TestCreateProject:
     """Tests for creating projects."""
 

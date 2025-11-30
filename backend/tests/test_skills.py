@@ -3,7 +3,6 @@ Tests for skill endpoints.
 """
 
 
-
 class TestCreateSkill:
     """Tests for creating skills."""
 

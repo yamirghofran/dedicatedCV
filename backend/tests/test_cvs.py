@@ -3,7 +3,6 @@ Tests for CV endpoints.
 """
 
 
-
 class TestCreateCV:
     """Tests for creating CVs."""
 
