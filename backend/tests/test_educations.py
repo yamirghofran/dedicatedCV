@@ -2,7 +2,6 @@
 Tests for education endpoints.
 """
 
-import pytest
 
 
 class TestCreateEducation:

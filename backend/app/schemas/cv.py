@@ -63,9 +63,9 @@ class CVWithRelations(CVInDBBase):
 
 
 # Forward references for relationships
-from app.schemas.education import Education
-from app.schemas.project import Project
-from app.schemas.skill import Skill
-from app.schemas.work_experience import WorkExperience
+from app.schemas.education import Education  # noqa: E402
+from app.schemas.project import Project  # noqa: E402
+from app.schemas.skill import Skill  # noqa: E402
+from app.schemas.work_experience import WorkExperience  # noqa: E402
 
 CVWithRelations.model_rebuild()

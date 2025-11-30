@@ -2,7 +2,6 @@
 Tests for work experience endpoints.
 """
 
-import pytest
 
 
 class TestCreateWorkExperience:

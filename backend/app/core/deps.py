@@ -3,7 +3,6 @@ Dependencies for FastAPI endpoints.
 Includes authentication and database session management.
 """
 
-from typing import Generator
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer

@@ -2,7 +2,6 @@
 Tests for CV endpoints.
 """
 
-import pytest
 
 
 class TestCreateCV:

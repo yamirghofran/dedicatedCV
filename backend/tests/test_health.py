@@ -2,7 +2,6 @@
 Tests for health check endpoint.
 """
 
-import pytest
 
 
 class TestHealthCheck:

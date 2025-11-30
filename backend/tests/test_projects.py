@@ -2,7 +2,6 @@
 Tests for project endpoints.
 """
 
-import pytest
 
 
 class TestCreateProject:
