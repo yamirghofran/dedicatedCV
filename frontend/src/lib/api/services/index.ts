@@ -3,9 +3,9 @@
  * Centralized export for all API services
  */
 
-export * from './auth.service'
-export * from './cv.service'
-export * from './work-experience.service'
-export * from './education.service'
-export * from './skill.service'
-export * from './project.service'
+export * from "./auth.service";
+export * from "./cv.service";
+export * from "./education.service";
+export * from "./project.service";
+export * from "./skill.service";
+export * from "./work-experience.service";
