@@ -1,0 +1,56 @@
+# Gitleaks configuration for secret scanning
+# https://github.com/gitleaks/gitleaks
+
+title = "Gitleaks Config"
+
+[extend]
+# Use the default gitleaks rules as a base
+useDefault = true
+
+# Allowlist specific patterns that are false positives
+[allowlist]
+description = "Allowlist for false positives"
+
+# Paths to ignore (test files, examples, etc.)
+paths = [
+    '''(^|/)\.env\.example$''',
+    '''(^|/)tests?/''',
+    '''(^|/)test_.*\.py$''',
+    '''(^|/).*_test\.py$''',
+    '''(^|/)conftest\.py$''',
+    '''(^|/).*\.test\.(ts|tsx|js|jsx)$''',
+    '''(^|/).*\.spec\.(ts|tsx|js|jsx)$''',
+    '''(^|/)node_modules/''',
+    '''(^|/)\.git/''',
+    '''(^|/)dist/''',
+    '''(^|/)build/''',
+    '''(^|/)coverage/''',
+    '''\.lock$''',
+    '''package-lock\.json$''',
+    '''bun\.lock$''',
+    '''uv\.lock$''',
+]
+
+# Regexes to ignore (example secrets, placeholders)
+regexes = [
+    '''test-secret-key.*''',
+    '''your-secret-key-here''',
+    '''<your.*key.*>''',
+    '''REPLACE_ME''',
+    '''changeme''',
+    '''example\.com''',
+    '''localhost''',
+]
+
+# Commits to ignore (if any historical commits have false positives)
+# commits = [
+#     "abc123...",
+# ]
+
+# Additional rules can be added here
+# [[rules]]
+# id = "custom-rule"
+# description = "Custom secret pattern"
+# regex = '''custom-pattern'''
+# tags = ["custom"]
+
