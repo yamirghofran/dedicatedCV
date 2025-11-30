@@ -20,6 +20,7 @@ This project uses GitHub Actions for continuous integration. The pipeline runs a
 │  │                     │    │                     │            │
 │  │  • Lint & Types     │    │  • Lint & Types     │            │
 │  │  • Tests            │    │  • Build & Test     │            │
+│  │  • Build            │    │                     │            │
 │  │  • Security Scan    │    │                     │            │
 │  └─────────────────────┘    └─────────────────────┘            │
 │                                                                 │
@@ -41,6 +42,7 @@ This project uses GitHub Actions for continuous integration. The pipeline runs a
 |-----|-------------|-------|
 | **backend-lint** | Linting and type checking | Ruff, mypy |
 | **backend-test** | Unit tests with coverage | pytest, pytest-cov |
+| **backend-build** | Verify package builds correctly | uv build |
 | **backend-security** | Dependency vulnerability scan | pip-audit |
 
 ### Frontend Jobs (run only when `frontend/**` changes)
@@ -74,6 +76,22 @@ The pipeline uses smart path detection to skip unnecessary jobs:
 | Both | ✅ Run | ✅ Run | ✅ Run |
 | Neither | ⏭️ Skip | ⏭️ Skip | ✅ Run |
 
+## Dependency Caching
+
+The pipeline caches dependencies to speed up subsequent runs:
+
+### Backend (Python/uv)
+- **Cache key**: Based on `backend/uv.lock`
+- **Cache location**: uv's internal cache
+- **Benefit**: ~30-60s faster when dependencies unchanged
+
+### Frontend (Bun)
+- **Cache key**: Based on `frontend/bun.lock`
+- **Cache location**: `~/.bun/install/cache`
+- **Benefit**: ~20-40s faster when dependencies unchanged
+
+When lock files change, the cache is invalidated and dependencies are reinstalled.
+
 ## Branch Protection
 
 To require CI to pass before merging, add `ci-success` as a required status check in your repository settings:
@@ -95,25 +113,44 @@ To require CI to pass before merging, add `ci-success` as a required status chec
 ### Backend
 ```bash
 cd backend
-make lint      # Run Ruff linting
-make test      # Run pytest
+uv sync --all-extras      # Install dependencies
+uv run ruff check .       # Linting
+uv run ruff format --check .  # Format check
 uv run mypy app --ignore-missing-imports  # Type check
-uv run pip-audit  # Security scan
+uv run pytest             # Run tests
+uv build                  # Build package
+uv run pip-audit          # Security scan
 ```
 
 ### Frontend
 ```bash
 cd frontend
-bun run check  # Biome lint + format
-bunx tsc --noEmit  # Type check
-bun run test   # Run Vitest
-bun run build  # Production build
+bun install --frozen-lockfile  # Install dependencies
+bunx biome format --error-on-warnings ./src  # Format check
+bunx tsc --noEmit              # Type check
+bunx vitest run --passWithNoTests  # Run tests
+bun run build                  # Production build
 ```
 
 ## Artifacts
 
 The pipeline uploads artifacts that are retained for 7 days:
 
-- **backend-coverage**: Test coverage report (XML)
-- **frontend-dist**: Production build output
+| Artifact | Description |
+|----------|-------------|
+| **backend-coverage** | Test coverage report (XML) |
+| **frontend-dist** | Production build output |
 
+## Troubleshooting
+
+### Cache not working?
+- Verify your lock files (`uv.lock`, `bun.lock`) are committed
+- Check the Actions tab for cache hit/miss logs
+
+### Tests failing in CI but passing locally?
+- Check environment variables are set correctly
+- Verify all dependencies are in lock files
+
+### Build failing?
+- Run the build locally first: `uv build` or `bun run build`
+- Check for missing dependencies or type errors
