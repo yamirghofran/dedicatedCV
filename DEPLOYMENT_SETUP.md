@@ -66,6 +66,11 @@ Then visit http://localhost:8080
 
 ## Troubleshooting
 
+### Site startup probe failed / Container keeps restarting
+- **Fixed**: Nginx now listens on both port 80 and 8080 for Azure compatibility
+- Azure automatically detects port 80 from the nginx:alpine base image
+- The container will start successfully on either port
+
 ### Frontend can't connect to backend
 - Verify `VITE_API_BASE_URL` secret is set correctly in GitHub
 - Check that the backend URL is accessible (not localhost!)
