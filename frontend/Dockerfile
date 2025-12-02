@@ -6,6 +6,15 @@ FROM oven/bun:1-alpine AS builder
 
 WORKDIR /app
 
+# Accept build arguments for Vite environment variables
+ARG VITE_API_BASE_URL
+ARG VITE_API_VERSION=v1
+
+# Set as environment variables for the build process
+# These will be baked into the static bundle during build
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+ENV VITE_API_VERSION=$VITE_API_VERSION
+
 # Copy package files
 COPY package.json bun.lock ./
 
@@ -15,7 +24,7 @@ RUN bun install --frozen-lockfile
 # Copy source code
 COPY . .
 
-# Build the application
+# Build the application with environment variables baked in
 RUN bun run build
 
 # Stage 2: Production server with Nginx
