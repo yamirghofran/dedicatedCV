@@ -20,8 +20,8 @@ This project uses GitHub Actions for continuous integration. The pipeline runs a
 │  │                     │    │                     │            │
 │  │  • Lint & Types     │    │  • Lint & Types     │            │
 │  │  • Tests            │    │  • Build & Test     │            │
-│  │  • Build            │    │                     │            │
-│  │  • Security Scan    │    │                     │            │
+│  │  • Build            │    │  • SCA (npm audit)  │            │
+│  │  • SAST & SCA       │    │  • SAST (Semgrep)   │            │
 │  └─────────────────────┘    └─────────────────────┘            │
 │                                                                 │
 │  ┌─────────────────────┐                                       │
@@ -43,7 +43,8 @@ This project uses GitHub Actions for continuous integration. The pipeline runs a
 | **backend-lint** | Linting and type checking | Ruff, mypy |
 | **backend-test** | Unit tests with coverage | pytest, pytest-cov |
 | **backend-build** | Verify package builds correctly | uv build |
-| **backend-security** | Dependency vulnerability scan | pip-audit |
+| **backend-security** | Dependency SCA (vulnerability scan) | pip-audit |
+| **backend-sast** | Static application security testing | Semgrep (Python, OWASP, secrets) |
 
 ### Frontend Jobs (run only when `frontend/**` changes)
 
@@ -51,6 +52,8 @@ This project uses GitHub Actions for continuous integration. The pipeline runs a
 |-----|-------------|-------|
 | **frontend-lint** | Linting and type checking | Biome, TypeScript |
 | **frontend-build** | Tests and production build | Vitest, Vite |
+| **frontend-security** | Dependency SCA (vulnerability scan) | npm audit |
+| **frontend-sast** | Static application security testing | Semgrep (JS/TS/React, OWASP, secrets) |
 
 ### Global Jobs (always run)
 
