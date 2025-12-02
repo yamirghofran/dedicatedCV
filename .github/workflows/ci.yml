@@ -289,6 +289,28 @@ jobs:
           path: frontend/dist
           retention-days: 7
 
+  frontend-security:
+    name: Frontend Security Scan (npm audit)
+    needs: changes
+    if: ${{ needs.changes.outputs.frontend == 'true' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Generate package-lock for audit (no install)
+        run: npm install --package-lock-only
+
+      - name: Run npm audit (SCA)
+        run: npm audit --audit-level=high
+
   frontend-sast:
     name: Frontend SAST (Semgrep)
     needs: changes
@@ -352,6 +374,7 @@ jobs:
       - backend-sast
       - frontend-lint
       - frontend-build
+      - frontend-security
       - frontend-sast
       - secret-scanning
     if: always()
@@ -396,6 +419,10 @@ jobs:
             fi
             if [[ "${{ needs.frontend-build.result }}" != "success" ]]; then
               echo "❌ Frontend build failed"
+              exit 1
+            fi
+            if [[ "${{ needs.frontend-security.result }}" != "success" ]]; then
+              echo "❌ Frontend security scan failed"
               exit 1
             fi
             if [[ "${{ needs.frontend-sast.result }}" != "success" ]]; then
