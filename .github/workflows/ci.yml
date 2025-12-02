@@ -178,6 +178,37 @@ jobs:
         run: uv run pip-audit || echo "⚠️ Vulnerabilities found - review above output"
         continue-on-error: true
 
+  backend-sast:
+    name: Backend SAST (Semgrep)
+    needs: changes
+    if: ${{ needs.changes.outputs.backend == 'true' }}
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Semgrep SAST scan
+        run: |
+          semgrep scan \
+            --config=p/python \
+            --config=p/security-audit \
+            --config=p/secrets \
+            --config=p/owasp-top-ten \
+            --sarif \
+            --output=semgrep-backend.sarif \
+            backend/
+
+      - name: Upload SARIF results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: semgrep-backend.sarif
+          category: backend-sast
+
   # ============================================
   # FRONTEND JOBS
   # ============================================
@@ -258,6 +289,39 @@ jobs:
           path: frontend/dist
           retention-days: 7
 
+  frontend-sast:
+    name: Frontend SAST (Semgrep)
+    needs: changes
+    if: ${{ needs.changes.outputs.frontend == 'true' }}
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Semgrep SAST scan
+        run: |
+          semgrep scan \
+            --config=p/javascript \
+            --config=p/typescript \
+            --config=p/react \
+            --config=p/security-audit \
+            --config=p/secrets \
+            --config=p/owasp-top-ten \
+            --sarif \
+            --output=semgrep-frontend.sarif \
+            frontend/
+
+      - name: Upload SARIF results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: semgrep-frontend.sarif
+          category: frontend-sast
+
   # ============================================
   # GLOBAL JOBS (Always run)
   # ============================================
@@ -285,8 +349,10 @@ jobs:
       - backend-test
       - backend-build
       - backend-security
+      - backend-sast
       - frontend-lint
       - frontend-build
+      - frontend-sast
       - secret-scanning
     if: always()
     steps:
@@ -316,6 +382,10 @@ jobs:
               echo "❌ Backend security scan failed"
               exit 1
             fi
+            if [[ "${{ needs.backend-sast.result }}" != "success" ]]; then
+              echo "❌ Backend SAST scan failed"
+              exit 1
+            fi
           fi
 
           # Check frontend jobs (only if frontend changed)
@@ -326,6 +396,10 @@ jobs:
             fi
             if [[ "${{ needs.frontend-build.result }}" != "success" ]]; then
               echo "❌ Frontend build failed"
+              exit 1
+            fi
+            if [[ "${{ needs.frontend-sast.result }}" != "success" ]]; then
+              echo "❌ Frontend SAST scan failed"
               exit 1
             fi
           fi
