@@ -31,8 +31,10 @@ RUN bun run build
 FROM nginx:alpine AS production
 
 # Copy custom nginx configuration
+# Azure expects port 80, so we listen on both 80 and 8080 for compatibility
 COPY <<EOF /etc/nginx/conf.d/default.conf
 server {
+    listen 80;
     listen 8080;
     server_name _;
     root /usr/share/nginx/html;
@@ -81,8 +83,8 @@ RUN chmod -R 755 /usr/share/nginx/html && \
     touch /var/run/nginx.pid && \
     chmod 666 /var/run/nginx.pid
 
-# Expose port 8080 (Azure App Service default)
-EXPOSE 8080
+# Expose both ports for Azure compatibility
+EXPOSE 80 8080
 
 # Start nginx (Azure will handle user context)
 CMD ["nginx", "-g", "daemon off;"]
