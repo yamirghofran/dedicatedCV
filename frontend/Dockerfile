@@ -72,20 +72,17 @@ EOF
 # Copy built assets from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Azure App Service runs containers as non-root user
-# Nginx needs to listen on port 8080 (not 80) for non-root
-RUN chown -R nginx:nginx /usr/share/nginx/html && \
-    chown -R nginx:nginx /var/cache/nginx && \
-    chown -R nginx:nginx /var/log/nginx && \
-    chown -R nginx:nginx /etc/nginx/conf.d && \
+# Azure App Service compatibility
+# Set permissions for potential non-root execution
+RUN chmod -R 755 /usr/share/nginx/html && \
+    chmod -R 777 /var/cache/nginx && \
+    chmod -R 777 /var/log/nginx && \
+    chmod -R 755 /etc/nginx/conf.d && \
     touch /var/run/nginx.pid && \
-    chown -R nginx:nginx /var/run/nginx.pid
-
-# Switch to non-root user
-USER nginx
+    chmod 666 /var/run/nginx.pid
 
 # Expose port 8080 (Azure App Service default)
 EXPOSE 8080
 
-# Start nginx
+# Start nginx (Azure will handle user context)
 CMD ["nginx", "-g", "daemon off;"]
