@@ -107,7 +107,8 @@ function CVPreviewPlaceholder() {
 					<div
 						className="rounded-lg border border-dashed bg-muted p-6 print:bg-white"
 						style={{
-							width: 800,
+							// Even wider preview for maximum text size in PDF
+							width: 1200,
 							maxWidth: "100%",
 							aspectRatio: "8.5 / 11",
 							overflow: "auto",

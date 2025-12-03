@@ -5,11 +5,11 @@ type Props = {
 };
 
 const base = { fontFamily: '"Geist", sans-serif', color: "#0f172a" };
-const title = { fontSize: 24, fontWeight: 700, margin: 0 };
-const small = { fontSize: 14, lineHeight: 1.5 };
-const xs = { fontSize: 12, color: "#475569" };
+const title = { fontSize: 32, fontWeight: 700, margin: 0 };
+const small = { fontSize: 18, lineHeight: 1.6 };
+const xs = { fontSize: 14, color: "#475569" };
 const sectionTitle = {
-	fontSize: 12,
+	fontSize: 14,
 	letterSpacing: "0.08em",
 	textTransform: "uppercase",
 	fontWeight: 700,
@@ -20,12 +20,12 @@ export function ModernTemplate({ cv }: Props) {
 	return (
 		<div
 			style={{
-				...base,
-				background: "#f8fafc",
-				padding: 32,
-				display: "grid",
-				gap: 16,
-			}}
+					...base,
+					background: "#f8fafc",
+					padding: 36,
+					display: "grid",
+					gap: 18,
+				}}
 		>
 			<header
 				style={{

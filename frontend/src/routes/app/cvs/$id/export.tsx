@@ -71,7 +71,8 @@ function CVExportPlaceholder() {
 				jsPDFModule;
 
 			const canvas = await html2canvas(previewRef.current, {
-				scale: 2,
+				// Aggressive scale for crisp, larger PDF text
+				scale: 4,
 				backgroundColor: "#ffffff",
 				useCORS: true,
 				onclone: (doc: Document) => {

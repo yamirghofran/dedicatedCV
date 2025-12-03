@@ -5,11 +5,11 @@ type Props = {
 };
 
 const baseFont = { fontFamily: '"Geist", sans-serif', color: "#111827" };
-const heading = { fontSize: 24, fontWeight: 700, margin: 0 };
-const textSm = { fontSize: 14, lineHeight: 1.5 };
-const textXs = { fontSize: 12, color: "#4b5563" };
+const heading = { fontSize: 32, fontWeight: 700, margin: 0 };
+const textSm = { fontSize: 18, lineHeight: 1.6 };
+const textXs = { fontSize: 14, color: "#4b5563" };
 const sectionTitle = {
-	fontSize: 12,
+	fontSize: 14,
 	letterSpacing: "0.08em",
 	textTransform: "uppercase",
 	fontWeight: 700,
@@ -20,13 +20,13 @@ export function ClassicTemplate({ cv }: Props) {
 	return (
 		<div
 			style={{
-				...baseFont,
-				background: "#fff",
-				padding: 32,
-				border: "1px solid #e5e7eb",
-				display: "grid",
-				gap: 16,
-			}}
+					...baseFont,
+					background: "#fff",
+					padding: 36,
+					border: "1px solid #e5e7eb",
+					display: "grid",
+					gap: 18,
+				}}
 		>
 			<header
 				style={{

@@ -5,11 +5,11 @@ type Props = {
 };
 
 const base = { fontFamily: '"Geist", sans-serif', color: "#111827" };
-const h1 = { fontSize: 24, fontWeight: 600, margin: 0 };
-const sm = { fontSize: 14, lineHeight: 1.5 };
-const xs = { fontSize: 12, color: "#4b5563" };
+const h1 = { fontSize: 32, fontWeight: 600, margin: 0 };
+const sm = { fontSize: 18, lineHeight: 1.6 };
+const xs = { fontSize: 14, color: "#4b5563" };
 const sectionTitle = {
-	fontSize: 12,
+	fontSize: 14,
 	letterSpacing: "0.08em",
 	textTransform: "uppercase",
 	fontWeight: 700,
@@ -20,12 +20,12 @@ export function MinimalTemplate({ cv }: Props) {
 	return (
 		<div
 			style={{
-				...base,
-				background: "#fff",
-				padding: 32,
-				display: "grid",
-				gap: 12,
-			}}
+					...base,
+					background: "#fff",
+					padding: 36,
+					display: "grid",
+					gap: 14,
+				}}
 		>
 			<header style={{ marginBottom: 8 }}>
 				<h1 style={h1}>{cv.full_name}</h1>
