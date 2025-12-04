@@ -81,24 +81,80 @@ The pipeline uses smart path detection to skip unnecessary jobs:
 | Both | ✅ Run | ✅ Run | ✅ Run |
 | Neither | ⏭️ Skip | ⏭️ Skip | ✅ Run |
 
+## Job Sequencing & Dependencies
+
+The pipeline uses a combination of parallel and sequential execution for optimal speed and correctness:
+
+### Backend Job Graph
+
+```
+changes ──► backend-setup ──┬──► backend-lint
+                            ├──► backend-test ──► backend-build
+                            └──► backend-security
+
+changes ──► backend-sast (runs independently)
+```
+
+- **backend-setup**: Runs first, installs all dependencies once, uploads shared virtualenv
+- **backend-lint, backend-test, backend-security**: Run in parallel after setup, reuse shared venv
+- **backend-build**: Runs only after tests pass (sequential dependency)
+- **backend-sast**: Runs independently (no venv needed, uses Semgrep container)
+
+### Frontend Job Graph
+
+```
+changes ──► frontend-lint ──► frontend-build
+
+changes ──┬──► frontend-security
+          └──► frontend-sast
+```
+
+- **frontend-lint**: Runs first (format check, lint, type check)
+- **frontend-build**: Runs only after lint passes (sequential dependency)
+- **frontend-security, frontend-sast**: Run independently in parallel
+
+## Shared Backend Virtualenv
+
+The backend uses an artifact-based approach to share the virtualenv across jobs, avoiding repeated dependency installation:
+
+### How it works
+
+1. **backend-setup** job:
+   - Runs `uv sync --all-extras` to install all dependencies (including dev tools)
+   - Uploads `backend/.venv` as artifact named `backend-venv`
+
+2. **Downstream jobs** (lint, test, build, security):
+   - Download the `backend-venv` artifact to `backend/.venv`
+   - Restore executable permissions with `chmod -R +x .venv/bin/`
+   - Run tools directly via `uv run` without reinstalling
+
+### Technical notes
+
+- **Artifact paths**: Upload/download paths are relative to `$GITHUB_WORKSPACE` (repo root), not to `working-directory`
+- **Permissions**: GitHub artifacts don't preserve Unix permissions, so we restore them after download
+- **Artifact retention**: `backend-venv` is retained for 1 day (only needed within workflow run)
+
+### Benefits
+
+- **Faster CI**: Dependencies installed once instead of 4× (lint, test, build, security)
+- **Consistent environment**: All jobs use identical dependency versions
+- **Reduced network load**: PyPI packages downloaded once per workflow run
+
 ## Dependency Caching
 
-The pipeline caches dependencies to speed up subsequent runs:
+In addition to the shared venv artifact, the pipeline uses tool-level caching:
 
-### Backend (Python/uv)
+### Backend (uv cache)
 - **Cache key**: Based on `backend/uv.lock`
-- **Cache location**: uv's internal cache
-- **Execution model**:
-  - `backend-setup` installs dependencies once into `backend/.venv` and uploads it as an artifact.
-  - `backend-lint`, `backend-test`, and `backend-security` download and reuse this shared virtualenv instead of reinstalling.
-- **Benefit**: Avoids repeated `uv sync` across backend jobs and speeds up overall backend CI.
+- **Cache location**: uv's internal cache (`~/.cache/uv`)
+- **Benefit**: If lockfile unchanged, `backend-setup` installs from cache (~2-5s vs ~30s)
 
-### Frontend (Bun)
+### Frontend (Bun cache)
 - **Cache key**: Based on `frontend/bun.lock`
 - **Cache location**: `~/.bun/install/cache`
 - **Benefit**: ~20-40s faster when dependencies unchanged
 
-When lock files change, the cache is invalidated and dependencies are reinstalled.
+When lock files change, caches are invalidated and dependencies are reinstalled.
 
 ## Branch Protection
 
@@ -142,12 +198,13 @@ bun run build                  # Production build
 
 ## Artifacts
 
-The pipeline uploads artifacts that are retained for 7 days:
+The pipeline uploads the following artifacts:
 
-| Artifact | Description |
-|----------|-------------|
-| **backend-coverage** | Test coverage report (XML) |
-| **frontend-dist** | Production build output |
+| Artifact | Description | Retention |
+|----------|-------------|-----------|
+| **backend-venv** | Shared Python virtualenv for backend jobs | 1 day |
+| **backend-coverage** | Test coverage report (XML) | 7 days |
+| **frontend-dist** | Production build output | 7 days |
 
 ## Troubleshooting
 
@@ -162,3 +219,21 @@ The pipeline uploads artifacts that are retained for 7 days:
 ### Build failing?
 - Run the build locally first: `uv build` or `bun run build`
 - Check for missing dependencies or type errors
+
+### Backend venv artifact issues?
+
+**"Artifact not found" error:**
+- Check `backend-setup` job completed successfully
+- Verify the upload path is `backend/.venv` (relative to repo root)
+
+**"Permission denied" error:**
+- The `chmod -R +x .venv/bin/` step restores executable permissions
+- If missing, add it after the download-artifact step
+
+**"Failed to spawn" error (e.g., ruff, pytest):**
+- Tools may not be installed - check `backend-setup` runs `uv sync --all-extras`
+- Verify dev dependencies are in `pyproject.toml` under `[project.optional-dependencies]`
+
+**uv creates new venv instead of using downloaded one:**
+- Download path should be `backend/.venv`, not `backend`
+- The artifact contains the *contents* of `.venv`, not the directory itself
