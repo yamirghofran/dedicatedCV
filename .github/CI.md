@@ -18,10 +18,11 @@ This project uses GitHub Actions for continuous integration. The pipeline runs a
 │  │   Backend Jobs      │    │   Frontend Jobs     │            │
 │  │   (if backend/)     │    │   (if frontend/)    │            │
 │  │                     │    │                     │            │
-│  │  • Lint & Types     │    │  • Lint & Types     │            │
-│  │  • Tests            │    │  • Build & Test     │            │
-│  │  • Build            │    │  • SCA (npm audit)  │            │
-│  │  • SAST & SCA       │    │  • SAST (Semgrep)   │            │
+│  │  • Setup (shared venv)│  │  • Lint & Types     │            │
+│  │  • Lint & Types     │    │  • Build & Test     │            │
+│  │  • Tests            │    │  • SCA (npm audit)  │            │
+│  │  • Build (after tests)│  │  • SAST (Semgrep)   │            │
+│  │  • SAST & SCA       │    │                     │            │
 │  └─────────────────────┘    └─────────────────────┘            │
 │                                                                 │
 │  ┌─────────────────────┐                                       │
@@ -40,10 +41,11 @@ This project uses GitHub Actions for continuous integration. The pipeline runs a
 
 | Job | Description | Tools |
 |-----|-------------|-------|
-| **backend-lint** | Linting and type checking | Ruff, mypy |
-| **backend-test** | Unit tests with coverage | pytest, pytest-cov |
-| **backend-build** | Verify package builds correctly | uv build |
-| **backend-security** | Dependency SCA (vulnerability scan) | pip-audit |
+| **backend-setup** | One-time backend environment setup; installs dependencies into a shared virtualenv and uploads it as an artifact | uv, Python |
+| **backend-lint** | Linting and type checking (reuses shared virtualenv from `backend-setup`) | Ruff, mypy |
+| **backend-test** | Unit tests with coverage (reuses shared virtualenv from `backend-setup`) | pytest, pytest-cov |
+| **backend-build** | Verify package builds correctly; runs **after tests** and reuses the shared virtualenv | uv build |
+| **backend-security** | Dependency SCA (vulnerability scan, reuses shared virtualenv) | pip-audit |
 | **backend-sast** | Static application security testing | Semgrep (Python, OWASP, secrets) |
 
 ### Frontend Jobs (run only when `frontend/**` changes)
@@ -51,7 +53,7 @@ This project uses GitHub Actions for continuous integration. The pipeline runs a
 | Job | Description | Tools |
 |-----|-------------|-------|
 | **frontend-lint** | Linting and type checking | Biome, TypeScript |
-| **frontend-build** | Tests and production build | Vitest, Vite |
+| **frontend-build** | Tests and production build; runs **after** `frontend-lint` completes successfully | Vitest, Vite |
 | **frontend-security** | Dependency SCA (vulnerability scan) | npm audit |
 | **frontend-sast** | Static application security testing | Semgrep (JS/TS/React, OWASP, secrets) |
 
@@ -86,7 +88,10 @@ The pipeline caches dependencies to speed up subsequent runs:
 ### Backend (Python/uv)
 - **Cache key**: Based on `backend/uv.lock`
 - **Cache location**: uv's internal cache
-- **Benefit**: ~30-60s faster when dependencies unchanged
+- **Execution model**:
+  - `backend-setup` installs dependencies once into `backend/.venv` and uploads it as an artifact.
+  - `backend-lint`, `backend-test`, and `backend-security` download and reuse this shared virtualenv instead of reinstalling.
+- **Benefit**: Avoids repeated `uv sync` across backend jobs and speeds up overall backend CI.
 
 ### Frontend (Bun)
 - **Cache key**: Based on `frontend/bun.lock`
