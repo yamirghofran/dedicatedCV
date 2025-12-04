@@ -61,11 +61,24 @@ jobs:
       - name: Install dependencies once (shared venv)
         run: uv sync --all-extras
 
+      - name: Debug - List created files
+        run: |
+          echo "=== Current directory (backend/) ==="
+          pwd
+          echo "=== Contents of backend/ ==="
+          ls -la
+          echo "=== Check if .venv exists ==="
+          ls -la .venv || echo ".venv not found in backend/"
+          echo "=== From repo root ==="
+          ls -la $GITHUB_WORKSPACE/backend/ || true
+          ls -la $GITHUB_WORKSPACE/backend/.venv || echo ".venv not found at repo root/backend/.venv"
+
       - name: Upload backend virtualenv
         uses: actions/upload-artifact@v4
         with:
           name: backend-venv
           path: backend/.venv
+          include-hidden-files: true
           retention-days: 1
 
   backend-lint:
