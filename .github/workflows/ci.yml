@@ -110,6 +110,9 @@ jobs:
           name: backend-venv
           path: backend/.venv
 
+      - name: Fix venv permissions
+        run: chmod -R +x .venv/bin/
+
       - name: Run Ruff linting
         run: uv run ruff check .
 
@@ -155,6 +158,9 @@ jobs:
           name: backend-venv
           path: backend/.venv
 
+      - name: Fix venv permissions
+        run: chmod -R +x .venv/bin/
+
       - name: Run tests with coverage
         run: uv run pytest --cov=app --cov-report=term-missing --cov-report=xml
 
@@ -195,6 +201,9 @@ jobs:
           name: backend-venv
           path: backend/.venv
 
+      - name: Fix venv permissions
+        run: chmod -R +x .venv/bin/
+
       - name: Build package
         run: uv build
 
@@ -229,6 +238,9 @@ jobs:
         with:
           name: backend-venv
           path: backend/.venv
+
+      - name: Fix venv permissions
+        run: chmod -R +x .venv/bin/
 
       # TODO: Fix ecdsa vulnerability (GHSA-wj6h-64fc-37mp) and re-enable strict mode
       # Currently running in non-blocking mode due to python-jose dependency issue
