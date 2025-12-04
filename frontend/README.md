@@ -71,8 +71,7 @@ From the **repo root** (not the `frontend/` subdirectory):
 
 When you commit changes that touch `frontend/src/**/*.{ts,tsx,js,jsx}`, pre-commit will:
 
-- Run **Biome format** via `bunx biome format --write` on the staged frontend files.
-- Run **Biome lint** via `bunx biome lint` on the staged frontend files (blocking locally).
+- Run **Biome check** via `bunx biome check --apply` on the staged frontend files, which formats code and applies safe lint fixes automatically.
 
 In addition, global hooks run on all commits:
 
