@@ -1,9 +1,11 @@
-name: CD - Build and Push Docker Images
+name: CD - Staged Deployment with DAST
 
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["CI Pipeline"]
+    branches: [main]
+    types:
+      - completed
   workflow_dispatch:
 
 env:
@@ -12,12 +14,33 @@ env:
   BACKEND_IMAGE: dedicatedcv-backend
 
 jobs:
-  build-and-push:
+  check-ci:
+    name: Verify CI Passed
     runs-on: ubuntu-latest
-    
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    steps:
+      - run: echo "CI passed, proceeding with deployment"
+  # ============================================
+  # STAGE 1: BUILD AND PUSH IMAGES
+  # ============================================
+  build:
+    needs: [check-ci]
+    name: Build & Push Docker Images
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.meta.outputs.tag }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Generate image tag
+        id: meta
+        run: |
+          # Use short SHA for versioning
+          TAG="${{ github.sha }}"
+          SHORT_TAG="${TAG:0:7}"
+          echo "tag=${SHORT_TAG}" >> $GITHUB_OUTPUT
+          echo "Image tag: ${SHORT_TAG}"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -29,30 +52,202 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
-      - name: Build and push frontend image
+      # Build frontend for STAGING (uses staging API URL)
+      - name: Build and push frontend image (Staging)
         uses: docker/build-push-action@v5
         with:
           context: ./frontend
           file: ./frontend/Dockerfile
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE }}:latest
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE }}:${{ steps.meta.outputs.tag }}-staging
+          build-args: |
+            VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL_STAGING }}
+            VITE_API_VERSION=v1
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE }}:buildcache,mode=max
+
+      # Build frontend for PRODUCTION (uses prod API URL)
+      - name: Build and push frontend image (Production)
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE }}:${{ steps.meta.outputs.tag }}
+            ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE }}:latest
           build-args: |
             VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}
             VITE_API_VERSION=v1
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE }}:buildcache
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE }}:buildcache,mode=max
 
+      # Backend is environment-agnostic (env vars at runtime)
       - name: Build and push backend image
         uses: docker/build-push-action@v5
         with:
           context: ./backend
           file: ./backend/Dockerfile
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:latest
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:${{ steps.meta.outputs.tag }}
+            ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:latest
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:buildcache
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:buildcache,mode=max
 
-      - name: Image digest
+      - name: Image summary
         run: |
-          echo "Frontend image pushed to ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE }}:latest"
-          echo "Backend image pushed to ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:latest"
+          echo "### Built Images" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Image | Tag |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|-----|" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend (Staging) | \`${{ steps.meta.outputs.tag }}-staging\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend (Prod) | \`${{ steps.meta.outputs.tag }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend | \`${{ steps.meta.outputs.tag }}\` |" >> $GITHUB_STEP_SUMMARY
+
+  # ============================================
+  # STAGE 2: DEPLOY TO STAGING
+  # ============================================
+  deploy-staging:
+    name: Deploy to Staging
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://${{ secrets.STAGING_FRONTEND_APP_NAME }}.azurewebsites.net
+    steps:
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy Backend to Staging
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ secrets.STAGING_BACKEND_APP_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:${{ needs.build.outputs.image_tag }}
+
+      - name: Deploy Frontend to Staging
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ secrets.STAGING_FRONTEND_APP_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE }}:${{ needs.build.outputs.image_tag }}-staging
+
+      - name: Wait for staging to be healthy
+        run: |
+          echo "Waiting for staging services to start..."
+          sleep 60
+
+          # Check backend health
+          for i in {1..10}; do
+            if curl -sf "https://${{ secrets.STAGING_BACKEND_APP_NAME }}.azurewebsites.net/api/v1/health" > /dev/null; then
+              echo "Backend staging is healthy"
+              break
+            fi
+            echo "Attempt $i: Backend not ready, waiting..."
+            sleep 15
+          done
+
+          # Check frontend health
+          for i in {1..10}; do
+            if curl -sf "https://${{ secrets.STAGING_FRONTEND_APP_NAME }}.azurewebsites.net/health" > /dev/null; then
+              echo "Frontend staging is healthy"
+              break
+            fi
+            echo "Attempt $i: Frontend not ready, waiting..."
+            sleep 15
+          done
+
+      - name: Staging deployment summary
+        run: |
+          echo "### Staging Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Service | URL |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|-----|" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend | https://${{ secrets.STAGING_FRONTEND_APP_NAME }}.azurewebsites.net |" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend | https://${{ secrets.STAGING_BACKEND_APP_NAME }}.azurewebsites.net |" >> $GITHUB_STEP_SUMMARY
+
+  # ============================================
+  # STAGE 3: DAST SECURITY TESTING
+  # ============================================
+  dast-scan:
+    name: DAST Security Scan (OWASP ZAP)
+    needs: [build, deploy-staging]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: OWASP ZAP Baseline Scan - Backend API
+        uses: zaproxy/action-baseline@v0.12.0
+        with:
+          target: "https://${{ secrets.STAGING_BACKEND_APP_NAME }}.azurewebsites.net"
+          rules_file_name: ".zap/rules.tsv"
+          cmd_options: "-a -j -l WARN"
+          allow_issue_writing: false
+        continue-on-error: true  # Set to false to block on security issues
+
+      - name: OWASP ZAP Baseline Scan - Frontend
+        uses: zaproxy/action-baseline@v0.12.0
+        with:
+          target: "https://${{ secrets.STAGING_FRONTEND_APP_NAME }}.azurewebsites.net"
+          rules_file_name: ".zap/rules.tsv"
+          cmd_options: "-a -j -l WARN"
+          allow_issue_writing: false
+        continue-on-error: true  # Set to false to block on security issues
+
+      - name: Upload ZAP Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: zap-scan-report
+          path: report_html.html
+          retention-days: 30
+
+      - name: DAST Summary
+        if: always()
+        run: |
+          echo "### DAST Security Scan Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "OWASP ZAP baseline scan completed against staging environment." >> $GITHUB_STEP_SUMMARY
+          echo "Check the uploaded artifact for detailed report." >> $GITHUB_STEP_SUMMARY
+
+  # ============================================
+  # STAGE 4: DEPLOY TO PRODUCTION
+  # ============================================
+  deploy-production:
+    name: Deploy to Production
+    needs: [build, dast-scan]
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://${{ secrets.PROD_FRONTEND_APP_NAME }}.azurewebsites.net
+    steps:
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy Backend to Production
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ secrets.PROD_BACKEND_APP_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:${{ needs.build.outputs.image_tag }}
+
+      - name: Deploy Frontend to Production
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ secrets.PROD_FRONTEND_APP_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE }}:${{ needs.build.outputs.image_tag }}
+
+      - name: Production deployment summary
+        run: |
+          echo "### Production Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Service | URL |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|-----|" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend | https://${{ secrets.PROD_FRONTEND_APP_NAME }}.azurewebsites.net |" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend | https://${{ secrets.PROD_BACKEND_APP_NAME }}.azurewebsites.net |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Image tag:** \`${{ needs.build.outputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
