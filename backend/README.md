@@ -385,6 +385,45 @@ uv run pytest
 - Cascade delete behavior
 - Edge cases
 
+## Pre-commit setup
+
+This repository uses [`pre-commit`](https://pre-commit.com/) to run fast, local checks before each commit, aligned with the CI pipeline.
+
+From the **repo root** (`dedicatedCV/`):
+
+1. **Install pre-commit** (one-time):
+
+   ```bash
+   pipx install pre-commit
+   # or, with uv
+   uv tool install pre-commit
+   ```
+
+2. **Install the git hooks** (one-time per clone):
+
+   ```bash
+   pre-commit install
+   ```
+
+3. **Run on all files once** (recommended after setup):
+
+   ```bash
+   pre-commit run --all-files
+   ```
+
+### What runs for the backend
+
+When you commit changes that touch `backend/**/*.py`, pre-commit will:
+
+- Run **Ruff formatter** via `uv run ruff format` on the staged Python files.
+- Run **Ruff lint** via `uv run ruff check` on the staged Python files.
+
+In addition, global hooks run on all commits:
+
+- Basic hygiene checks (trailing whitespace, EOF, merge-conflict markers).
+- Config validation for YAML/TOML/JSON files.
+- **Gitleaks** secret scanning using the repo’s `.gitleaks.toml` configuration.
+
 ## Security Features
 
 ### Authentication & Authorization

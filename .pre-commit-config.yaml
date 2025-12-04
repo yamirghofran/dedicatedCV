@@ -1,0 +1,61 @@
+repos:
+  # Built-in pre-commit hooks for general hygiene
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-merge-conflict
+      - id: check-yaml
+        files: \.(yml|yaml)$
+      - id: check-toml
+      - id: check-json
+
+  # Backend: Ruff formatter and linter (Python) using uv
+  - repo: local
+    hooks:
+      - id: backend-ruff-format
+        name: Backend Ruff Format
+        entry: uv run ruff format
+        language: system
+        types: [python]
+        files: ^backend/.*\.py$
+        pass_filenames: true
+
+      - id: backend-ruff-lint
+        name: Backend Ruff Lint
+        entry: uv run ruff check
+        language: system
+        types: [python]
+        files: ^backend/.*\.py$
+        pass_filenames: true
+
+  # Frontend: Biome format + lint (TS/TSX/JS) using Bun
+  - repo: local
+    hooks:
+      - id: frontend-biome-format
+        name: Frontend Biome Format
+        entry: bunx biome format --write
+        language: system
+        files: ^frontend/src/.*\.(ts|tsx|js|jsx)$
+        pass_filenames: true
+        additional_dependencies: []
+
+      - id: frontend-biome-lint
+        name: Frontend Biome Lint
+        entry: bunx biome lint
+        language: system
+        files: ^frontend/src/.*\.(ts|tsx|js|jsx)$
+        pass_filenames: true
+        additional_dependencies: []
+
+  # Secret scanning with Gitleaks using existing config
+  - repo: local
+    hooks:
+      - id: gitleaks-detect
+        name: Gitleaks Secret Scan
+        entry: gitleaks detect --source . --config .gitleaks.toml
+        language: system
+        pass_filenames: false
+
+
