@@ -228,3 +228,29 @@ export interface HealthCheck {
 	version: string;
 	database: string;
 }
+
+// AI Optimization
+export interface OptimizeDescriptionRequest {
+	original_text: string;
+	field_type: "work_experience" | "education" | "project" | "summary";
+	context?: {
+		position?: string;
+		company?: string;
+		duration?: string;
+		[key: string]: string | undefined;
+	};
+}
+
+export interface OptimizeDescriptionResponse {
+	original: string;
+	optimized: string;
+}
+
+export interface GenerateSummaryRequest {
+	cv_id: number;
+	tone?: "professional" | "casual" | "formal";
+}
+
+export interface GenerateSummaryResponse {
+	summary: string;
+}

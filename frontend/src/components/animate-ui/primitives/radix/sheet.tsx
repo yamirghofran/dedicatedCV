@@ -96,6 +96,8 @@ function SheetContent({
 	side = "right",
 	transition = { type: "spring", stiffness: 150, damping: 22 },
 	style,
+	className,
+	children,
 	...props
 }: SheetContentProps) {
 	const axis = side === "left" || side === "right" ? "x" : "y";
@@ -115,7 +117,7 @@ function SheetContent({
 	};
 
 	return (
-		<SheetPrimitive.Content asChild forceMount {...props}>
+		<SheetPrimitive.Content asChild forceMount>
 			<motion.div
 				key="sheet-content"
 				data-slot="sheet-content"
@@ -129,7 +131,11 @@ function SheetContent({
 					...style,
 				}}
 				transition={transition}
-			/>
+				className={className}
+				{...props}
+			>
+				{children}
+			</motion.div>
 		</SheetPrimitive.Content>
 	);
 }

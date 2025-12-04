@@ -16,6 +16,32 @@ const sectionTitle = {
 	marginBottom: 8,
 };
 
+const bulletListStyle = {
+	paddingLeft: 20,
+	marginTop: 6,
+	marginBottom: 0,
+	listStyleType: "disc",
+};
+const bulletItemStyle = { ...xs, color: "#111827", marginBottom: 4 };
+
+function renderBullets(text?: string | null) {
+	if (!text) return null;
+	const bullets = text
+		.split(/\r?\n/)
+		.map((line) => line.trim().replace(/^[-•]\s*/, ""))
+		.filter(Boolean);
+	if (!bullets.length) return null;
+	return (
+		<ul style={bulletListStyle}>
+			{bullets.map((b, i) => (
+				<li key={i} style={bulletItemStyle}>
+					{b}
+				</li>
+			))}
+		</ul>
+	);
+}
+
 export function MinimalTemplate({ cv }: Props) {
 	return (
 		<div
@@ -65,6 +91,7 @@ export function MinimalTemplate({ cv }: Props) {
 								<div style={xs}>
 									{w.start_date} - {w.end_date || "Present"}
 								</div>
+								{renderBullets(w.description)}
 							</li>
 						))}
 					</ul>
@@ -106,6 +133,7 @@ export function MinimalTemplate({ cv }: Props) {
 									{p.name || (p as any).title}
 								</div>
 								{p.technologies && <div style={xs}>{p.technologies}</div>}
+								{renderBullets(p.description)}
 							</li>
 						))}
 					</ul>

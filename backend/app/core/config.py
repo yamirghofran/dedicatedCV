@@ -53,6 +53,10 @@ class Settings(BaseSettings):
     APPLICATIONINSIGHTS_CONNECTION_STRING: str = ""
     ENABLE_AZURE_INSIGHTS: bool = False
 
+    # AI/LLM
+    GROQ_API_KEY: str = ""
+    GROQ_MODEL: str = "llama-3.1-8b-instant"
+
     @field_validator("BACKEND_CORS_ORIGINS", mode="after")
     @classmethod
     def parse_cors(cls, v: str) -> List[str]:

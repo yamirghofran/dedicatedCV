@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.api.v1.endpoints import (
+    ai,
     auth,
     cvs,
     educations,
@@ -26,3 +27,6 @@ api_router.include_router(
 api_router.include_router(educations.router, prefix="/educations", tags=["educations"])
 api_router.include_router(skills.router, prefix="/skills", tags=["skills"])
 api_router.include_router(projects.router, prefix="/projects", tags=["projects"])
+
+# AI optimization endpoints (require authentication)
+api_router.include_router(ai.router, prefix="/ai", tags=["ai"])

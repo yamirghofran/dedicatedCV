@@ -3,6 +3,7 @@
  * Centralized export for all API services
  */
 
+export * from "./ai.service";
 export * from "./auth.service";
 export * from "./cv.service";
 export * from "./education.service";
