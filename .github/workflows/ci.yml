@@ -65,7 +65,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: backend-venv
-          path: backend/.venv
+          path: .venv
           retention-days: 1
 
   backend-lint:
