@@ -33,29 +33,21 @@ repos:
   # Frontend: Biome format + lint (TS/TSX/JS) using Bun
   - repo: local
     hooks:
-      - id: frontend-biome-format
-        name: Frontend Biome Format
-        entry: bunx biome format --write
+      - id: frontend-biome-check
+        name: Frontend Biome Check
+        entry: bunx biome check --apply
         language: system
         files: ^frontend/src/.*\.(ts|tsx|js|jsx)$
         pass_filenames: true
-        additional_dependencies: []
-
-      - id: frontend-biome-lint
-        name: Frontend Biome Lint
-        entry: bunx biome lint
-        language: system
-        files: ^frontend/src/.*\.(ts|tsx|js|jsx)$
-        pass_filenames: true
-        additional_dependencies: []
 
   # Secret scanning with Gitleaks using existing config
-  - repo: local
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.4
     hooks:
-      - id: gitleaks-detect
+      - id: gitleaks
         name: Gitleaks Secret Scan
-        entry: gitleaks detect --source . --config .gitleaks.toml
-        language: system
-        pass_filenames: false
-
-
+        args:
+          - protect
+          - --staged
+          - --verbose
+          - --config=.gitleaks.toml
