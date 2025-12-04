@@ -10,7 +10,12 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+	ToggleGroup,
+	ToggleGroupItem,
+} from "@/components/animate-ui/components/radix/toggle-group";
 import { useCV } from "@/hooks/use-cvs";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { ClassicTemplate, MinimalTemplate, ModernTemplate } from "@/templates";
 
 export const Route = createFileRoute("/app/cvs/$id/preview")({
@@ -21,13 +26,14 @@ function CVPreviewPlaceholder() {
 	const { id } = Route.useParams();
 	const cvId = Number(id);
 	const { data: cv, isLoading } = useCV(cvId);
+	const isMobile = useIsMobile();
 	const [selectedTemplate, setSelectedTemplate] = useState<
-		"Classic" | "Modern" | "Minimal"
-	>("Classic");
+		"classic" | "modern" | "minimal"
+	>("classic");
 
 	useEffect(() => {
 		const stored = localStorage.getItem(`cv_template_${cvId}`);
-		if (stored === "Modern" || stored === "Minimal" || stored === "Classic") {
+		if (stored === "modern" || stored === "minimal" || stored === "classic") {
 			setSelectedTemplate(stored);
 		}
 	}, [cvId]);
@@ -38,9 +44,9 @@ function CVPreviewPlaceholder() {
 
 	const TemplateComponent = useMemo(() => {
 		switch (selectedTemplate) {
-			case "Modern":
+			case "modern":
 				return ModernTemplate;
-			case "Minimal":
+			case "minimal":
 				return MinimalTemplate;
 			default:
 				return ClassicTemplate;
@@ -58,39 +64,51 @@ function CVPreviewPlaceholder() {
 
 	return (
 		<div className="space-y-6">
-			<div className="flex items-center justify-between">
-				<div>
+			{/* Header - Mobile Responsive */}
+			<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+				<div className="flex-1 min-w-0">
 					<p className="text-sm text-muted-foreground uppercase tracking-wide">
 						Preview
 					</p>
-					<h1 className="text-3xl font-bold">{cv.title}</h1>
-					<p className="text-muted-foreground mt-1">
-						Print-optimized preview with template selection.
+					<h1 className="text-2xl sm:text-3xl font-bold truncate">
+						{cv.title}
+					</h1>
+					<p className="text-muted-foreground mt-1 text-sm">
+						Choose a template and preview your CV
 					</p>
-					<div className="mt-3 flex flex-wrap gap-2">
-						{(["Classic", "Modern", "Minimal"] as const).map((template) => (
-							<Button
-								key={template}
-								variant={selectedTemplate === template ? "default" : "outline"}
-								size="sm"
-								onClick={() => setSelectedTemplate(template)}
-							>
-								{template}
-							</Button>
-						))}
+
+					{/* Template Toggle Group */}
+					<div className="mt-4">
+						<ToggleGroup
+							type="single"
+							value={selectedTemplate}
+							onValueChange={(value) => {
+								if (value) {
+									setSelectedTemplate(value as typeof selectedTemplate);
+								}
+							}}
+							variant="outline"
+							size={isMobile ? "default" : "default"}
+						>
+							<ToggleGroupItem value="classic">Classic</ToggleGroupItem>
+							<ToggleGroupItem value="modern">Modern</ToggleGroupItem>
+							<ToggleGroupItem value="minimal">Minimal</ToggleGroupItem>
+						</ToggleGroup>
 					</div>
 				</div>
-				<div className="flex gap-2">
+
+				{/* Action Buttons */}
+				<div className="flex gap-2 flex-wrap sm:flex-nowrap">
 					<Link to="/app/cvs/$id/edit" params={{ id }}>
-						<Button variant="outline" className="gap-2">
+						<Button variant="outline" size={isMobile ? "sm" : "default"} className="gap-2">
 							<ArrowLeft className="h-4 w-4" />
-							Back to editor
+							{!isMobile && "Back to editor"}
 						</Button>
 					</Link>
 					<Link to="/app/cvs/$id/export" params={{ id }}>
-						<Button className="gap-2">
+						<Button size={isMobile ? "sm" : "default"} className="gap-2">
 							<Download className="h-4 w-4" />
-							Go to export
+							{!isMobile && "Go to export"}
 						</Button>
 					</Link>
 				</div>
