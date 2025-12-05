@@ -125,13 +125,13 @@ jobs:
       - name: Deploy Backend to Staging
         uses: azure/webapps-deploy@v3
         with:
-          app-name: ${{ secrets.STAGING_BACKEND_APP_NAME }}
+          app-name: dedicatedcv-backend-staging
           images: ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:${{ needs.build.outputs.image_tag }}
 
       - name: Deploy Frontend to Staging
         uses: azure/webapps-deploy@v3
         with:
-          app-name: ${{ secrets.STAGING_FRONTEND_APP_NAME }}
+          app-name: dedicatedcv-frontend-staging
           images: ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE }}:${{ needs.build.outputs.image_tag }}-staging
 
       - name: Wait for staging to be healthy
