@@ -116,7 +116,6 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: staging
-      url: https://${{ secrets.STAGING_FRONTEND_APP_NAME }}.azurewebsites.net
     steps:
       - name: Azure Login
         uses: azure/login@v2
@@ -223,7 +222,6 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: production
-      url: https://${{ secrets.PROD_FRONTEND_APP_NAME }}.azurewebsites.net
     steps:
       - name: Azure Login
         uses: azure/login@v2
