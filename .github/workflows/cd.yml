@@ -122,6 +122,11 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+      - name: Debug – list webapps
+        run: |
+          az account show
+          az webapp list --query "[].{name:name, resourceGroup:resourceGroup}" -o table
+
       - name: Deploy Backend to Staging
         uses: azure/webapps-deploy@v3
         with:
