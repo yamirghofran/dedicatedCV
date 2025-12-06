@@ -38,7 +38,9 @@ class AIService:
         if context.get("duration"):
             context_parts.append(f"Duration: {context['duration']}")
 
-        context_str = "\n".join(context_parts) if context_parts else "No additional context"
+        context_str = (
+            "\n".join(context_parts) if context_parts else "No additional context"
+        )
 
         # Build prompt based on field type
         if field_type == "work_experience":
@@ -162,7 +164,9 @@ Return the improved version, keeping the same general format."""
 
         education_summary = []
         for edu in educations[:2]:  # Use top 2 education entries
-            education_summary.append(f"- {edu.get('degree')} from {edu.get('institution')}")
+            education_summary.append(
+                f"- {edu.get('degree')} from {edu.get('institution')}"
+            )
 
         skills_list = [s.get("name") for s in skills[:10]]  # Top 10 skills
 

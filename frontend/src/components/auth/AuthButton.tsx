@@ -1,10 +1,10 @@
+import { cva, type VariantProps } from "class-variance-authority";
 import {
 	type ButtonHTMLAttributes,
-	forwardRef,
 	cloneElement,
+	forwardRef,
 	isValidElement,
 } from "react";
-import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const authButtonVariants = cva(

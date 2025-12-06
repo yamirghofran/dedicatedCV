@@ -33,9 +33,7 @@ def calculate_cv_completion(cv: CV, db: Session) -> tuple[float, list[str]]:
     missing_sections = []
 
     # Check for related data
-    work_count = (
-        db.query(WorkExperience).filter(WorkExperience.cv_id == cv.id).count()
-    )
+    work_count = db.query(WorkExperience).filter(WorkExperience.cv_id == cv.id).count()
     edu_count = db.query(Education).filter(Education.cv_id == cv.id).count()
     skill_count = db.query(Skill).filter(Skill.cv_id == cv.id).count()
     project_count = db.query(Project).filter(Project.cv_id == cv.id).count()

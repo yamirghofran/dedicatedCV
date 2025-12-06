@@ -16,7 +16,10 @@ type WithAsChild<Base extends object> =
 	| (Base & { asChild?: false | undefined });
 
 // biome-ignore lint/suspicious/noExplicitAny: Slot needs to accept any motion props
-type SlotProps<T extends HTMLElement = HTMLElement> = Omit<DOMMotionProps<T>, 'children'> & {
+type SlotProps<T extends HTMLElement = HTMLElement> = Omit<
+	DOMMotionProps<T>,
+	"children"
+> & {
 	children?: any;
 };
 

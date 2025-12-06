@@ -3,13 +3,13 @@
  * Reusable form for creating/editing work experience entries
  */
 
+import { Sparkles } from "lucide-react";
+import { useEffect, useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Sparkles } from "lucide-react";
-import { useEffect, useState, useId } from "react";
 import type { WorkExperienceCreate } from "@/lib/api/types";
 
 interface WorkExperienceFormProps {

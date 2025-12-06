@@ -46,12 +46,12 @@ export function ModernTemplate({ cv }: Props) {
 	return (
 		<div
 			style={{
-					...base,
-					background: "#f8fafc",
-					padding: 36,
-					display: "grid",
-					gap: 18,
-				}}
+				...base,
+				background: "#f8fafc",
+				padding: 36,
+				display: "grid",
+				gap: 18,
+			}}
 		>
 			<header
 				style={{

@@ -46,13 +46,13 @@ export function ClassicTemplate({ cv }: Props) {
 	return (
 		<div
 			style={{
-					...baseFont,
-					background: "#fff",
-					padding: 36,
-					border: "1px solid #e5e7eb",
-					display: "grid",
-					gap: 18,
-				}}
+				...baseFont,
+				background: "#fff",
+				padding: 36,
+				border: "1px solid #e5e7eb",
+				display: "grid",
+				gap: 18,
+			}}
 		>
 			<header
 				style={{

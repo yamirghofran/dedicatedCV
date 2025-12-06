@@ -71,7 +71,7 @@ class ApiClient {
 		// Add auth token if available
 		const token = this.getAuthToken();
 		if (token) {
-			requestHeaders["Authorization"] = `Bearer ${token}`;
+			requestHeaders.Authorization = `Bearer ${token}`;
 		}
 
 		// Prepare body
