@@ -138,11 +138,11 @@ function RootComponent() {
   // Check if we're on an auth page (login/register)
   const isAuthPage = routerState.location.pathname.startsWith("/auth");
 
-  const displayName =
-    currentUser?.full_name ||
-    (currentUser?.email ? currentUser.email.split("@")[0] : "Guest User");
-  const displayEmail = currentUser?.email || "guest@cvmaker.com";
-  const initials = getInitials(displayName, displayEmail);
+  // If no current user, we should not be showing anything
+  // The route protection should have already redirected to login
+  const displayName = currentUser?.full_name || currentUser?.email?.split("@")[0] || "";
+  const displayEmail = currentUser?.email || "";
+  const initials = currentUser ? getInitials(displayName, displayEmail) : "";
 
   const breadcrumbMap: Record<string, string> = {
     "/": "Home",
