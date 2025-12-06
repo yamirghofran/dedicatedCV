@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useId } from "react";
 import type { ProjectCreate } from "@/lib/api/types";
 
 interface ProjectFormProps {
@@ -31,6 +31,11 @@ export function ProjectForm({
 	isSubmitting = false,
 	submitLabel = "Save",
 }: ProjectFormProps) {
+	const nameId = useId();
+	const technologiesId = useId();
+	const urlId = useId();
+	const descriptionId = useId();
+
 	const [form, setForm] = useState({
 		name: initialData?.name || "",
 		description: initialData?.description || "",
@@ -95,11 +100,11 @@ export function ProjectForm({
 		<form onSubmit={handleSubmit} className="space-y-4">
 			{/* Name */}
 			<div className="space-y-2">
-				<Label htmlFor="name" className="text-sm font-medium">
+				<Label htmlFor={nameId} className="text-sm font-medium">
 					Project Name <span className="text-destructive">*</span>
 				</Label>
 				<Input
-					id="name"
+					id={nameId}
 					value={form.name}
 					onChange={(e) => handleChange("name", e.target.value)}
 					placeholder="My Awesome Project"
@@ -112,11 +117,11 @@ export function ProjectForm({
 
 			{/* Technologies */}
 			<div className="space-y-2">
-				<Label htmlFor="technologies" className="text-sm font-medium">
+				<Label htmlFor={technologiesId} className="text-sm font-medium">
 					Technologies / Stack
 				</Label>
 				<Input
-					id="technologies"
+					id={technologiesId}
 					value={form.technologies}
 					onChange={(e) => handleChange("technologies", e.target.value)}
 					placeholder="React, Node.js, PostgreSQL"
@@ -125,11 +130,11 @@ export function ProjectForm({
 
 			{/* URL */}
 			<div className="space-y-2">
-				<Label htmlFor="url" className="text-sm font-medium">
+				<Label htmlFor={urlId} className="text-sm font-medium">
 					Project URL
 				</Label>
 				<Input
-					id="url"
+					id={urlId}
 					type="url"
 					value={form.url}
 					onChange={(e) => handleChange("url", e.target.value)}
@@ -139,11 +144,11 @@ export function ProjectForm({
 
 			{/* Description */}
 			<div className="space-y-2">
-				<Label htmlFor="description" className="text-sm font-medium">
+				<Label htmlFor={descriptionId} className="text-sm font-medium">
 					Description
 				</Label>
 				<Textarea
-					id="description"
+					id={descriptionId}
 					value={form.description}
 					onChange={(e) => handleChange("description", e.target.value)}
 					placeholder="A brief description of your project and its impact"

@@ -33,8 +33,8 @@ function renderBullets(text?: string | null) {
 	if (!bullets.length) return null;
 	return (
 		<ul style={bulletListStyle}>
-			{bullets.map((b, i) => (
-				<li key={i} style={bulletItemStyle}>
+			{bullets.map((b) => (
+				<li key={b} style={bulletItemStyle}>
 					{b}
 				</li>
 			))}
@@ -130,7 +130,7 @@ export function MinimalTemplate({ cv }: Props) {
 						{cv.projects.map((p) => (
 							<li key={p.id} style={{ marginBottom: 6 }}>
 								<div style={{ ...sm, fontWeight: 600 }}>
-									{p.name || (p as any).title}
+									{p.name}
 								</div>
 								{p.technologies && <div style={xs}>{p.technologies}</div>}
 								{renderBullets(p.description)}

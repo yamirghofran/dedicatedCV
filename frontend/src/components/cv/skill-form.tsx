@@ -6,7 +6,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useId } from "react";
 import type { SkillCreate } from "@/lib/api/types";
 
 interface SkillFormProps {
@@ -28,6 +28,9 @@ export function SkillForm({
 	isSubmitting = false,
 	submitLabel = "Save",
 }: SkillFormProps) {
+	const nameId = useId();
+	const categoryId = useId();
+
 	const [form, setForm] = useState({
 		name: initialData?.name || "",
 		category: initialData?.category || "",
@@ -86,11 +89,11 @@ export function SkillForm({
 		<form onSubmit={handleSubmit} className="space-y-4">
 			{/* Name */}
 			<div className="space-y-2">
-				<Label htmlFor="name" className="text-sm font-medium">
+				<Label htmlFor={nameId} className="text-sm font-medium">
 					Skill Name <span className="text-destructive">*</span>
 				</Label>
 				<Input
-					id="name"
+					id={nameId}
 					value={form.name}
 					onChange={(e) => handleChange("name", e.target.value)}
 					placeholder="React, TypeScript, etc."
@@ -103,11 +106,11 @@ export function SkillForm({
 
 			{/* Category */}
 			<div className="space-y-2">
-				<Label htmlFor="category" className="text-sm font-medium">
+				<Label htmlFor={categoryId} className="text-sm font-medium">
 					Category
 				</Label>
 				<Input
-					id="category"
+					id={categoryId}
 					value={form.category}
 					onChange={(e) => handleChange("category", e.target.value)}
 					placeholder="Programming Languages, Tools, etc."

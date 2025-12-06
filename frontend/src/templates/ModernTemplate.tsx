@@ -33,8 +33,8 @@ function renderBullets(text?: string | null) {
 	if (!bullets.length) return null;
 	return (
 		<ul style={bulletListStyle}>
-			{bullets.map((b, i) => (
-				<li key={i} style={bulletItemStyle}>
+			{bullets.map((b) => (
+				<li key={b} style={bulletItemStyle}>
 					{b}
 				</li>
 			))}
@@ -212,7 +212,7 @@ export function ModernTemplate({ cv }: Props) {
 										fontWeight: 600,
 									}}
 								>
-									<span>{p.name || (p as any).title}</span>
+									<span>{p.name}</span>
 									{(p.start_date || p.end_date) && (
 										<span style={xs}>
 											{p.start_date || ""} {p.end_date ? `- ${p.end_date}` : ""}
