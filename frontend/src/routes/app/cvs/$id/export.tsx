@@ -215,7 +215,6 @@ function CVExportPlaceholder() {
 							{[
 								{ id: "pdf", label: "PDF (recommended)", disabled: false },
 								{ id: "docx", label: "Word (.docx) — soon", disabled: true },
-								{ id: "txt", label: "Plain text — soon", disabled: true },
 							].map((option) => (
 								<label
 									key={option.id}

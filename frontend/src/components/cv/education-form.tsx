@@ -3,11 +3,11 @@
  * Reusable form for creating/editing education entries
  */
 
+import { useEffect, useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useEffect, useState } from "react";
 import type { EducationCreate } from "@/lib/api/types";
 
 interface EducationFormProps {
@@ -32,6 +32,10 @@ export function EducationForm({
 	isSubmitting = false,
 	submitLabel = "Save",
 }: EducationFormProps) {
+	const institutionId = useId();
+	const degreeId = useId();
+	const fieldOfStudyId = useId();
+
 	const [form, setForm] = useState({
 		institution: initialData?.institution || "",
 		degree: initialData?.degree || "",
@@ -105,11 +109,11 @@ export function EducationForm({
 		<form onSubmit={handleSubmit} className="space-y-4">
 			{/* Institution */}
 			<div className="space-y-2">
-				<Label htmlFor="institution" className="text-sm font-medium">
+				<Label htmlFor={institutionId} className="text-sm font-medium">
 					Institution <span className="text-destructive">*</span>
 				</Label>
 				<Input
-					id="institution"
+					id={institutionId}
 					value={form.institution}
 					onChange={(e) => handleChange("institution", e.target.value)}
 					placeholder="University of California"
@@ -122,11 +126,11 @@ export function EducationForm({
 
 			{/* Degree */}
 			<div className="space-y-2">
-				<Label htmlFor="degree" className="text-sm font-medium">
+				<Label htmlFor={degreeId} className="text-sm font-medium">
 					Degree <span className="text-destructive">*</span>
 				</Label>
 				<Input
-					id="degree"
+					id={degreeId}
 					value={form.degree}
 					onChange={(e) => handleChange("degree", e.target.value)}
 					placeholder="Bachelor of Science"
@@ -139,11 +143,11 @@ export function EducationForm({
 
 			{/* Field of Study */}
 			<div className="space-y-2">
-				<Label htmlFor="field_of_study" className="text-sm font-medium">
+				<Label htmlFor={fieldOfStudyId} className="text-sm font-medium">
 					Field of Study
 				</Label>
 				<Input
-					id="field_of_study"
+					id={fieldOfStudyId}
 					value={form.field_of_study}
 					onChange={(e) => handleChange("field_of_study", e.target.value)}
 					placeholder="Computer Science"

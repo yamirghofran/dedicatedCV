@@ -4,6 +4,7 @@
  * Uses the existing Sheet primitive with mobile-optimized styling
  */
 
+import type { ReactNode } from "react";
 import {
 	Sheet,
 	SheetClose,
@@ -13,9 +14,8 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from "@/components/animate-ui/components/radix/sheet";
-import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
-import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
 
 interface BottomSheetProps {
 	open: boolean;

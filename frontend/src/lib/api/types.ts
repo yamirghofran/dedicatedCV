@@ -221,6 +221,23 @@ export interface ProjectUpdate {
 	display_order?: number;
 }
 
+// Dashboard
+export interface IncompleteCVInfo {
+	id: number;
+	title: string;
+	completion_rate: number;
+	missing_sections: string[];
+}
+
+export interface DashboardStats {
+	total_cvs: number;
+	templates_used: number;
+	avg_completion_rate: number;
+	last_activity: string;
+	recent_cvs: CV[];
+	incomplete_cvs: IncompleteCVInfo[];
+}
+
 // Health
 export interface HealthCheck {
 	status: string;

@@ -10,6 +10,11 @@ import {
 	Trash,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { EducationForm } from "@/components/cv/education-form";
+import { ProjectForm } from "@/components/cv/project-form";
+import { SkillForm } from "@/components/cv/skill-form";
+import { WorkExperienceForm } from "@/components/cv/work-experience-form";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -18,16 +23,12 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { FloatingActionButton } from "@/components/ui/floating-action-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
-import { BottomSheet } from "@/components/ui/bottom-sheet";
-import { FloatingActionButton } from "@/components/ui/floating-action-button";
-import { WorkExperienceForm } from "@/components/cv/work-experience-form";
-import { EducationForm } from "@/components/cv/education-form";
-import { SkillForm } from "@/components/cv/skill-form";
-import { ProjectForm } from "@/components/cv/project-form";
+import { useOptimizeDescription } from "@/hooks/use-ai-optimization";
 import {
 	useEducationMutations,
 	useProjectMutations,
@@ -35,7 +36,6 @@ import {
 	useWorkExperienceMutations,
 } from "@/hooks/use-cv-sections";
 import { useCV, useUpdateCV } from "@/hooks/use-cvs";
-import { useOptimizeDescription } from "@/hooks/use-ai-optimization";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export const Route = createFileRoute("/app/cvs/$id/edit")({
@@ -546,7 +546,8 @@ function CVEditor() {
 													))}
 
 												{section.id === "skills" &&
-													cv.skills && cv.skills.length > 0 && (
+													cv.skills &&
+													cv.skills.length > 0 && (
 														<div className="flex flex-wrap gap-2">
 															{cv.skills.map((item) => (
 																<div
@@ -691,7 +692,9 @@ function CVEditor() {
 															<Button
 																size="sm"
 																variant="ghost"
-																onClick={() => handleOptimizeWorkExperience(item)}
+																onClick={() =>
+																	handleOptimizeWorkExperience(item)
+																}
 																disabled={!item.description}
 															>
 																<Sparkles className="h-4 w-4" />
@@ -699,7 +702,9 @@ function CVEditor() {
 															<Button
 																size="sm"
 																variant="ghost"
-																onClick={() => workMutations.remove.mutate(item.id)}
+																onClick={() =>
+																	workMutations.remove.mutate(item.id)
+																}
 															>
 																<Trash className="h-4 w-4 text-destructive" />
 															</Button>
@@ -714,7 +719,9 @@ function CVEditor() {
 														className="rounded-lg border p-4 flex items-start justify-between gap-4"
 													>
 														<div className="flex-1 min-w-0">
-															<div className="font-medium">{item.institution}</div>
+															<div className="font-medium">
+																{item.institution}
+															</div>
 															<div className="text-sm text-muted-foreground">
 																{item.degree} · {item.start_date} -{" "}
 																{item.end_date || "Present"}
@@ -748,7 +755,8 @@ function CVEditor() {
 												))}
 
 											{section.id === "skills" &&
-												cv.skills && cv.skills.length > 0 && (
+												cv.skills &&
+												cv.skills.length > 0 && (
 													<div className="flex flex-wrap gap-2">
 														{cv.skills.map((item) => (
 															<div
@@ -844,7 +852,9 @@ function CVEditor() {
 			>
 				{activeSheet.section === "work" && (
 					<WorkExperienceForm
-						initialData={activeSheet.type === "edit" ? activeSheet.data : undefined}
+						initialData={
+							activeSheet.type === "edit" ? activeSheet.data : undefined
+						}
 						onSubmit={(data) => {
 							if (activeSheet.type === "edit") {
 								workMutations.update.mutate(
@@ -873,13 +883,17 @@ function CVEditor() {
 						isSubmitting={
 							workMutations.create.isPending || workMutations.update.isPending
 						}
-						submitLabel={activeSheet.type === "edit" ? "Save Changes" : "Add Experience"}
+						submitLabel={
+							activeSheet.type === "edit" ? "Save Changes" : "Add Experience"
+						}
 					/>
 				)}
 
 				{activeSheet.section === "education" && (
 					<EducationForm
-						initialData={activeSheet.type === "edit" ? activeSheet.data : undefined}
+						initialData={
+							activeSheet.type === "edit" ? activeSheet.data : undefined
+						}
 						onSubmit={(data) => {
 							if (activeSheet.type === "edit") {
 								educationMutations.update.mutate(
@@ -909,13 +923,17 @@ function CVEditor() {
 							educationMutations.create.isPending ||
 							educationMutations.update.isPending
 						}
-						submitLabel={activeSheet.type === "edit" ? "Save Changes" : "Add Education"}
+						submitLabel={
+							activeSheet.type === "edit" ? "Save Changes" : "Add Education"
+						}
 					/>
 				)}
 
 				{activeSheet.section === "skills" && (
 					<SkillForm
-						initialData={activeSheet.type === "edit" ? activeSheet.data : undefined}
+						initialData={
+							activeSheet.type === "edit" ? activeSheet.data : undefined
+						}
 						onSubmit={(data) => {
 							if (activeSheet.type === "edit") {
 								skillMutations.update.mutate(
@@ -944,13 +962,17 @@ function CVEditor() {
 						isSubmitting={
 							skillMutations.create.isPending || skillMutations.update.isPending
 						}
-						submitLabel={activeSheet.type === "edit" ? "Save Changes" : "Add Skill"}
+						submitLabel={
+							activeSheet.type === "edit" ? "Save Changes" : "Add Skill"
+						}
 					/>
 				)}
 
 				{activeSheet.section === "projects" && (
 					<ProjectForm
-						initialData={activeSheet.type === "edit" ? activeSheet.data : undefined}
+						initialData={
+							activeSheet.type === "edit" ? activeSheet.data : undefined
+						}
 						onSubmit={(data) => {
 							if (activeSheet.type === "edit") {
 								projectMutations.update.mutate(
@@ -980,7 +1002,9 @@ function CVEditor() {
 							projectMutations.create.isPending ||
 							projectMutations.update.isPending
 						}
-						submitLabel={activeSheet.type === "edit" ? "Save Changes" : "Add Project"}
+						submitLabel={
+							activeSheet.type === "edit" ? "Save Changes" : "Add Project"
+						}
 					/>
 				)}
 			</BottomSheet>

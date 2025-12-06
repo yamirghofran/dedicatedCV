@@ -16,11 +16,31 @@ export const AUTH_KEYS = {
  * Get current authenticated user
  */
 export function useCurrentUser() {
+	const queryClient = useQueryClient();
+
 	return useQuery({
 		queryKey: AUTH_KEYS.currentUser,
-		queryFn: () => authService.getCurrentUser(),
+		queryFn: async () => {
+			// Double-check authentication before fetching
+			if (!authService.isAuthenticated()) {
+				// Clear all cached data if not authenticated
+				queryClient.clear();
+				return null;
+			}
+
+			try {
+				return await authService.getCurrentUser();
+			} catch (error) {
+				// If getCurrentUser fails (e.g., 401), ensure we're logged out
+				authService.logout();
+				queryClient.clear();
+				throw error;
+			}
+		},
 		enabled: authService.isAuthenticated(),
 		retry: false,
+		staleTime: 0, // Always check freshness
+		gcTime: 0, // Don't cache when query is unmounted
 	});
 }
 

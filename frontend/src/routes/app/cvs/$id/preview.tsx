@@ -1,6 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Download } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import {
+	ToggleGroup,
+	ToggleGroupItem,
+} from "@/components/animate-ui/components/radix/toggle-group";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -10,10 +14,6 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-	ToggleGroup,
-	ToggleGroupItem,
-} from "@/components/animate-ui/components/radix/toggle-group";
 import { useCV } from "@/hooks/use-cvs";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ClassicTemplate, MinimalTemplate, ModernTemplate } from "@/templates";
@@ -100,7 +100,11 @@ function CVPreviewPlaceholder() {
 				{/* Action Buttons */}
 				<div className="flex gap-2 flex-wrap sm:flex-nowrap">
 					<Link to="/app/cvs/$id/edit" params={{ id }}>
-						<Button variant="outline" size={isMobile ? "sm" : "default"} className="gap-2">
+						<Button
+							variant="outline"
+							size={isMobile ? "sm" : "default"}
+							className="gap-2"
+						>
 							<ArrowLeft className="h-4 w-4" />
 							{!isMobile && "Back to editor"}
 						</Button>

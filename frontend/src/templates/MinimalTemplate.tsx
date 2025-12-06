@@ -33,8 +33,8 @@ function renderBullets(text?: string | null) {
 	if (!bullets.length) return null;
 	return (
 		<ul style={bulletListStyle}>
-			{bullets.map((b, i) => (
-				<li key={i} style={bulletItemStyle}>
+			{bullets.map((b) => (
+				<li key={b} style={bulletItemStyle}>
 					{b}
 				</li>
 			))}
@@ -46,12 +46,12 @@ export function MinimalTemplate({ cv }: Props) {
 	return (
 		<div
 			style={{
-					...base,
-					background: "#fff",
-					padding: 36,
-					display: "grid",
-					gap: 14,
-				}}
+				...base,
+				background: "#fff",
+				padding: 36,
+				display: "grid",
+				gap: 14,
+			}}
 		>
 			<header style={{ marginBottom: 8 }}>
 				<h1 style={h1}>{cv.full_name}</h1>
@@ -129,9 +129,7 @@ export function MinimalTemplate({ cv }: Props) {
 					<ul style={{ paddingLeft: 16, margin: 0 }}>
 						{cv.projects.map((p) => (
 							<li key={p.id} style={{ marginBottom: 6 }}>
-								<div style={{ ...sm, fontWeight: 600 }}>
-									{p.name || (p as any).title}
-								</div>
+								<div style={{ ...sm, fontWeight: 600 }}>{p.name}</div>
 								{p.technologies && <div style={xs}>{p.technologies}</div>}
 								{renderBullets(p.description)}
 							</li>

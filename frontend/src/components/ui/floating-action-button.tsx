@@ -3,10 +3,10 @@
  * Mobile-first floating action button for primary actions
  */
 
+import type { LucideIcon } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Plus } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 
 interface FloatingActionButtonProps {
 	onClick: () => void;

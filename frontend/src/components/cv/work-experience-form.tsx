@@ -3,13 +3,13 @@
  * Reusable form for creating/editing work experience entries
  */
 
+import { Sparkles } from "lucide-react";
+import { useEffect, useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Sparkles } from "lucide-react";
-import { useEffect, useState } from "react";
 import type { WorkExperienceCreate } from "@/lib/api/types";
 
 interface WorkExperienceFormProps {
@@ -37,6 +37,11 @@ export function WorkExperienceForm({
 	isSubmitting = false,
 	submitLabel = "Save",
 }: WorkExperienceFormProps) {
+	const companyId = useId();
+	const positionId = useId();
+	const locationId = useId();
+	const descriptionId = useId();
+
 	const [form, setForm] = useState({
 		company: initialData?.company || "",
 		position: initialData?.position || "",
@@ -115,11 +120,11 @@ export function WorkExperienceForm({
 		<form onSubmit={handleSubmit} className="space-y-4">
 			{/* Company */}
 			<div className="space-y-2">
-				<Label htmlFor="company" className="text-sm font-medium">
+				<Label htmlFor={companyId} className="text-sm font-medium">
 					Company <span className="text-destructive">*</span>
 				</Label>
 				<Input
-					id="company"
+					id={companyId}
 					value={form.company}
 					onChange={(e) => handleChange("company", e.target.value)}
 					placeholder="Acme Corp"
@@ -132,11 +137,11 @@ export function WorkExperienceForm({
 
 			{/* Position */}
 			<div className="space-y-2">
-				<Label htmlFor="position" className="text-sm font-medium">
+				<Label htmlFor={positionId} className="text-sm font-medium">
 					Position <span className="text-destructive">*</span>
 				</Label>
 				<Input
-					id="position"
+					id={positionId}
 					value={form.position}
 					onChange={(e) => handleChange("position", e.target.value)}
 					placeholder="Senior Developer"
@@ -149,11 +154,11 @@ export function WorkExperienceForm({
 
 			{/* Location */}
 			<div className="space-y-2">
-				<Label htmlFor="location" className="text-sm font-medium">
+				<Label htmlFor={locationId} className="text-sm font-medium">
 					Location
 				</Label>
 				<Input
-					id="location"
+					id={locationId}
 					value={form.location}
 					onChange={(e) => handleChange("location", e.target.value)}
 					placeholder="San Francisco, CA"
@@ -187,7 +192,7 @@ export function WorkExperienceForm({
 			{/* Description */}
 			<div className="space-y-2">
 				<div className="flex items-center justify-between">
-					<Label htmlFor="description" className="text-sm font-medium">
+					<Label htmlFor={descriptionId} className="text-sm font-medium">
 						Description
 					</Label>
 					{onOptimize && form.description && (
@@ -204,7 +209,7 @@ export function WorkExperienceForm({
 					)}
 				</div>
 				<Textarea
-					id="description"
+					id={descriptionId}
 					value={form.description}
 					onChange={(e) => handleChange("description", e.target.value)}
 					placeholder="Led a team of 5 engineers to deliver..."

@@ -297,7 +297,7 @@ function TooltipOverlay() {
 							top: 0,
 							left: 0,
 							zIndex: 50,
-							transform: `translate3d(${x!}px, ${y!}px, 0)`,
+							transform: `translate3d(${x ?? 0}px, ${y ?? 0}px, 0)`,
 						}}
 					>
 						<FloatingProvider value={{ context, arrowRef }}>
