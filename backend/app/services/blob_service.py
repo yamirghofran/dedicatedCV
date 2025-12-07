@@ -50,17 +50,14 @@ class AzureBlobService:
         """
         Resolve an account key for SAS generation.
 
-        Prefers explicit AZURE_STORAGE_ACCOUNT_KEY, otherwise falls back to the
-        key embedded in the connection string.
+        Resolves AZURE_STORAGE_ACCOUNT_KEY embedded in the connection string.
         """
-        if settings.AZURE_STORAGE_ACCOUNT_KEY:
-            return settings.AZURE_STORAGE_ACCOUNT_KEY
 
         credential = getattr(self._client, "credential", None)
         account_key = getattr(credential, "account_key", None)
         if not account_key:
             raise ValueError(
-                "AZURE_STORAGE_ACCOUNT_KEY not configured and no key available from connection string"
+                "No azure key available from connection string"
             )
         return account_key
 
