@@ -39,3 +39,16 @@ class GenerateSummaryResponse(BaseModel):
     """Response schema for generated summary."""
 
     summary: str = Field(..., description="Generated professional summary")
+
+
+class ScoreCVRequest(BaseModel):
+    """Request schema for scoring a CV."""
+
+    cv_id: int = Field(..., description="CV ID to generate summary for")
+
+
+
+class ScoreCVResponse(BaseModel):
+    """Response schema for CV score/assessment."""
+
+    score: str = Field(..., description="AI-generated CV score and feedback")

@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Download } from "lucide-react";
+import { ArrowLeft, Download, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import {
 	ToggleGroup,
 	ToggleGroupItem,
 } from "@/components/animate-ui/components/radix/toggle-group";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -30,6 +31,7 @@ function CVPreviewPlaceholder() {
 	const [selectedTemplate, setSelectedTemplate] = useState<
 		"classic" | "modern" | "minimal"
 	>("classic");
+	const [isAiSheetOpen, setIsAiSheetOpen] = useState(false);
 
 	useEffect(() => {
 		const stored = localStorage.getItem(`cv_template_${cvId}`);
@@ -97,11 +99,11 @@ function CVPreviewPlaceholder() {
 					</div>
 				</div>
 
-				{/* Action Buttons */}
-				<div className="flex gap-2 flex-wrap sm:flex-nowrap">
-					<Link to="/app/cvs/$id/edit" params={{ id }}>
-						<Button
-							variant="outline"
+					{/* Action Buttons */}
+					<div className="flex gap-2 flex-wrap sm:flex-nowrap">
+						<Link to="/app/cvs/$id/edit" params={{ id }}>
+							<Button
+								variant="outline"
 							size={isMobile ? "sm" : "default"}
 							className="gap-2"
 						>
@@ -109,14 +111,23 @@ function CVPreviewPlaceholder() {
 							{!isMobile && "Back to editor"}
 						</Button>
 					</Link>
+						<Button
+							variant="secondary"
+							size={isMobile ? "sm" : "default"}
+							className="gap-2"
+							onClick={() => setIsAiSheetOpen(true)}
+						>
+							<Sparkles className="h-4 w-4" />
+							{!isMobile && "Review with AI"}
+						</Button>
 					<Link to="/app/cvs/$id/export" params={{ id }}>
 						<Button size={isMobile ? "sm" : "default"} className="gap-2">
 							<Download className="h-4 w-4" />
 							{!isMobile && "Go to export"}
 						</Button>
 					</Link>
+					</div>
 				</div>
-			</div>
 
 			<Card>
 				<CardHeader>
@@ -141,6 +152,32 @@ function CVPreviewPlaceholder() {
 					</div>
 				</CardContent>
 			</Card>
+
+			<BottomSheet
+				open={isAiSheetOpen}
+				onOpenChange={setIsAiSheetOpen}
+				title="AI Optimization"
+				description="Preview AI-powered tweaks without leaving the preview."
+				footer={
+					<div className="flex gap-2">
+						<Button
+							variant="outline"
+							className="flex-1"
+							onClick={() => setIsAiSheetOpen(false)}
+						>
+							Close
+						</Button>
+						<Button className="flex-1" disabled>
+							Coming soon
+						</Button>
+					</div>
+				}
+			>
+				<p className="text-sm text-muted-foreground">
+					This sheet mirrors the editor experience. Hook up your AI actions here
+					when ready.
+				</p>
+			</BottomSheet>
 		</div>
 	);
 }
