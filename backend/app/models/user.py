@@ -15,3 +15,6 @@ class User(Base, BaseModel):
 
     # Relationships
     cvs = relationship("CV", back_populates="user", cascade="all, delete-orphan")
+    share_links = relationship(
+        "ShareLink", back_populates="user", cascade="all, delete-orphan"
+    )

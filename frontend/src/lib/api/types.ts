@@ -271,3 +271,9 @@ export interface GenerateSummaryRequest {
 export interface GenerateSummaryResponse {
 	summary: string;
 }
+
+// Exports
+export interface ShareLinkResponse {
+	url: string;
+	expires_at: string;
+}

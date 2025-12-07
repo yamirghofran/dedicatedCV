@@ -4,7 +4,13 @@
  */
 
 import { apiClient } from "../client";
-import type { CV, CVCreate, CVUpdate, CVWithRelations } from "../types";
+import type {
+	CV,
+	CVCreate,
+	CVUpdate,
+	CVWithRelations,
+	ShareLinkResponse,
+} from "../types";
 
 export const cvService = {
 	/**
@@ -40,5 +46,19 @@ export const cvService = {
 	 */
 	async delete(id: number): Promise<void> {
 		return apiClient.delete<void>(`cvs/${id}`);
+	},
+
+	/**
+	 * Upload a generated CV PDF and get a shareable link.
+	 */
+	async createShareLink(id: number, file: File | Blob): Promise<ShareLinkResponse> {
+		const uploadFile =
+			file instanceof File
+				? file
+				: new File([file], "cv.pdf", { type: "application/pdf" });
+		const formData = new FormData();
+		formData.append("file", uploadFile);
+
+		return apiClient.post<ShareLinkResponse>(`cvs/${id}/share-link`, formData);
 	},
 };
