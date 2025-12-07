@@ -4,7 +4,7 @@ Authentication endpoints for user registration and login.
 
 from datetime import timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
@@ -14,6 +14,7 @@ from app.core.security import create_access_token, get_password_hash, verify_pas
 from app.db.base import get_db
 from app.models.user import User
 from app.schemas.user import Token, User as UserSchema, UserCreate
+from app.services.blob_service import get_blob_service
 
 router = APIRouter()
 
@@ -126,4 +127,47 @@ def test_token(current_user: User = Depends(get_current_user)):
     Returns:
         User: Current user object if token is valid
     """
+    return current_user
+
+
+@router.post("/profile-picture", response_model=UserSchema)
+async def upload_profile_picture(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Upload a profile picture for the current user and return the updated user.
+    """
+    if file.content_type not in ("image/jpeg", "image/png"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Only JPEG or PNG images are supported",
+        )
+
+    data = await file.read()
+    if not data:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Uploaded file is empty"
+        )
+
+    blob_service = get_blob_service()
+    try:
+        url, _ = blob_service.upload_profile_picture(
+            user_id=current_user.id, data=data, filename=file.filename or "avatar"
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Failed to upload profile picture",
+        ) from exc
+
+    current_user.profile_picture_url = url
+    db.add(current_user)
+    db.commit()
+    db.refresh(current_user)
     return current_user

@@ -59,7 +59,8 @@ class Settings(BaseSettings):
 
     AZURE_STORAGE_CONNECTION_STRING: str = ""
     AZURE_STORAGE_ACCOUNT_NAME: str = ""
-    AZURE_STORAGE_CONTAINER_NAME: str = ""
+    AZURE_STORAGE_PDF_CONTAINER_NAME: str = ""
+    AZURE_STORAGE_PFP_CONTAINER_NAME: str = ""
 
     @field_validator("BACKEND_CORS_ORIGINS", mode="after")
     @classmethod

@@ -9,6 +9,8 @@ import type {
 	GenerateSummaryResponse,
 	OptimizeDescriptionRequest,
 	OptimizeDescriptionResponse,
+	ScoreCVRequest,
+	ScoreCVResponse
 } from "../types";
 
 export const aiService = {
@@ -28,5 +30,14 @@ export const aiService = {
 		data: GenerateSummaryRequest,
 	): Promise<GenerateSummaryResponse> => {
 		return apiClient.post("/ai/generate-summary", data);
+	},
+
+	/**
+	 * Score cv on 5 pre-defined metrics
+	 */
+	scoreCv: async (
+		data: ScoreCVRequest,
+	): Promise<ScoreCVResponse> => {
+		return apiClient.post("/ai/score-cv", data);
 	},
 };

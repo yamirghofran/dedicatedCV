@@ -10,6 +10,8 @@ import type {
 	GenerateSummaryResponse,
 	OptimizeDescriptionRequest,
 	OptimizeDescriptionResponse,
+	ScoreCVRequest,
+	ScoreCVResponse,
 } from "@/lib/api/types";
 
 /**
@@ -31,5 +33,11 @@ export function useOptimizeDescription() {
 export function useGenerateSummary() {
 	return useMutation<GenerateSummaryResponse, Error, GenerateSummaryRequest>({
 		mutationFn: (data) => aiService.generateSummary(data),
+	});
+}
+
+export function useScoreCv() {
+	return useMutation<ScoreCVResponse, Error, ScoreCVRequest>({
+		mutationFn: (data) => aiService.scoreCv(data),
 	});
 }

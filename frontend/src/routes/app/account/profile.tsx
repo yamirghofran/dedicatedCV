@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -11,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useCurrentUser } from "@/hooks/use-auth";
+import { useCurrentUser, useUploadProfilePicture } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/app/account/profile")({
 	component: AccountProfilePage,
@@ -19,6 +20,8 @@ export const Route = createFileRoute("/app/account/profile")({
 
 function AccountProfilePage() {
 	const { data: user, isLoading } = useCurrentUser();
+	const uploadMutation = useUploadProfilePicture();
+	const [uploadError, setUploadError] = useState<string | null>(null);
 
 	if (isLoading || !user) {
 		return (
@@ -40,22 +43,54 @@ function AccountProfilePage() {
 
 			<Card>
 				<CardHeader>
-					<CardTitle>Basic info</CardTitle>
-					<CardDescription>Avatar, name, and email settings.</CardDescription>
-				</CardHeader>
-				<CardContent className="space-y-6">
-					<div className="flex items-center gap-4">
-						<Avatar className="h-16 w-16 rounded-lg">
-							<AvatarFallback className="rounded-lg text-lg">
-								{(user.full_name || user.email || "U")[0]?.toUpperCase()}
-							</AvatarFallback>
-						</Avatar>
-						<Button variant="outline" disabled>
-							Change photo (soon)
+				<CardTitle>Basic info</CardTitle>
+				<CardDescription>Avatar, name, and email settings.</CardDescription>
+			</CardHeader>
+			<CardContent className="space-y-6">
+				<div className="flex items-center gap-4">
+					<Avatar className="h-16 w-16 rounded-lg">
+						{user.profile_picture_url ? (
+							<AvatarImage
+								src={user.profile_picture_url}
+								alt={user.full_name || user.email}
+								className="rounded-lg object-cover"
+							/>
+						) : null}
+						<AvatarFallback className="rounded-lg text-lg">
+							{(user.full_name || user.email || "U")[0]?.toUpperCase()}
+						</AvatarFallback>
+					</Avatar>
+					<div className="space-y-2">
+						<input
+							id="avatarUpload"
+							type="file"
+							accept="image/png,image/jpeg"
+							className="hidden"
+							onChange={(e) => {
+								setUploadError(null);
+								const file = e.target.files?.[0];
+								if (!file) return;
+								uploadMutation.mutate(file, {
+									onError: (err) => {
+										setUploadError(err.message || "Upload failed");
+									},
+								});
+							}}
+						/>
+						<Button
+							variant="outline"
+							onClick={() => document.getElementById("avatarUpload")?.click()}
+							disabled={uploadMutation.isPending}
+						>
+							{uploadMutation.isPending ? "Uploading…" : "Change photo"}
 						</Button>
+						{uploadError && (
+							<p className="text-xs text-destructive">{uploadError}</p>
+						)}
 					</div>
-					<div className="grid gap-4">
-						<div className="space-y-2">
+				</div>
+				<div className="grid gap-4">
+					<div className="space-y-2">
 							<Label htmlFor="fullName">Full name</Label>
 							<Input id="fullName" value={user.full_name || ""} disabled />
 						</div>

@@ -44,11 +44,25 @@ class GenerateSummaryResponse(BaseModel):
 class ScoreCVRequest(BaseModel):
     """Request schema for scoring a CV."""
 
-    cv_id: int = Field(..., description="CV ID to generate summary for")
+    cv_id: int = Field(..., description="CV ID to score")
 
+
+class MetricScore(BaseModel):
+    """Schema for scoring individual metrics"""
+
+    score: int = Field(..., description="Score from 1 to 10")
+    reason: str = Field(..., description="Short explanation for the score")
 
 
 class ScoreCVResponse(BaseModel):
     """Response schema for CV score/assessment."""
 
-    score: str = Field(..., description="AI-generated CV score and feedback")
+    raw: str = Field(..., description="Raw score/feedback string returned by AI")
+    impact_achievement_density: MetricScore | None = None
+    clarity_readability: MetricScore | None = None
+    action_verb_strength: MetricScore | None = None
+    professionalism: MetricScore | None = None
+    summary_insight: str | None = Field(
+        default=None,
+        description="Optional combined overview of strengths and weaknesses",
+    )

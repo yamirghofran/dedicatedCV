@@ -138,7 +138,7 @@ def score_cv(
     """
     Score a CV and provide feedback/assessment.
 
-    - **cv_data**: Full CV data to evaluate (sent by client)
+    - **cv_id**: ID of the CV to evaluate
     """
 
     cv = (
@@ -187,8 +187,8 @@ def score_cv(
                 "name": project.name,
                 "description": project.description,
                 "technologies": project.technologies,
-                "has_url": True if (project.url or project.github_url) else False
-            } 
+                "has_url": True if (project.url or project.github_url) else False,
+            }
             for project in cv.projects
         ],
     }
@@ -196,7 +196,7 @@ def score_cv(
     try:
         ai_service = get_ai_service()
         score = ai_service.score_cv(cv_data=cv_data)
-        return ScoreCVResponse(score=score)
+        return ScoreCVResponse(raw=score)
     except ConnectionError as e:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,

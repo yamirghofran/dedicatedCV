@@ -208,7 +208,7 @@ Return ONLY the professional summary as a single paragraph."""
             ) from e
         except Exception as e:
             raise Exception(f"Failed to generate summary: {str(e)}") from e
-        
+
     def score_cv(self, cv_data: dict) -> str:
         """
         Evaluate key quality metrics for a CV:
@@ -264,15 +264,23 @@ Return ONLY the professional summary as a single paragraph."""
                 f"Has Dates: {edu.get('has_dates')}\n"
                 "---"
             )
-        education_text = "\n".join(education_section) if education_section else "Not provided"
+        education_text = (
+            "\n".join(education_section) if education_section else "Not provided"
+        )
 
         # SKILLS
-        skills_list = ", ".join([s.get("name") for s in skills]) if skills else "Not provided"
+        skills_list = (
+            ", ".join([s.get("name") for s in skills]) if skills else "Not provided"
+        )
 
         # PROJECTS
         project_section = []
         for proj in projects:
-            tech_list = ", ".join(proj.get("technologies", [])) if proj.get("technologies") else "None"
+            tech_list = (
+                ", ".join(proj.get("technologies", []))
+                if proj.get("technologies")
+                else "None"
+            )
             project_section.append(
                 f"Name: {proj.get('name')}\n"
                 f"Description: {proj.get('description') or 'Not provided'}\n"
