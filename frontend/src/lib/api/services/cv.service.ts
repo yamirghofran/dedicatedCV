@@ -51,7 +51,10 @@ export const cvService = {
 	/**
 	 * Upload a generated CV PDF and get a shareable link.
 	 */
-	async createShareLink(id: number, file: File | Blob): Promise<ShareLinkResponse> {
+	async createShareLink(
+		id: number,
+		file: File | Blob,
+	): Promise<ShareLinkResponse> {
 		const uploadFile =
 			file instanceof File
 				? file

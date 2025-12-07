@@ -43,54 +43,54 @@ function AccountProfilePage() {
 
 			<Card>
 				<CardHeader>
-				<CardTitle>Basic info</CardTitle>
-				<CardDescription>Avatar, name, and email settings.</CardDescription>
-			</CardHeader>
-			<CardContent className="space-y-6">
-				<div className="flex items-center gap-4">
-					<Avatar className="h-16 w-16 rounded-lg">
-						{user.profile_picture_url ? (
-							<AvatarImage
-								src={user.profile_picture_url}
-								alt={user.full_name || user.email}
-								className="rounded-lg object-cover"
+					<CardTitle>Basic info</CardTitle>
+					<CardDescription>Avatar, name, and email settings.</CardDescription>
+				</CardHeader>
+				<CardContent className="space-y-6">
+					<div className="flex items-center gap-4">
+						<Avatar className="h-16 w-16 rounded-lg">
+							{user.profile_picture_url ? (
+								<AvatarImage
+									src={user.profile_picture_url}
+									alt={user.full_name || user.email}
+									className="rounded-lg object-cover"
+								/>
+							) : null}
+							<AvatarFallback className="rounded-lg text-lg">
+								{(user.full_name || user.email || "U")[0]?.toUpperCase()}
+							</AvatarFallback>
+						</Avatar>
+						<div className="space-y-2">
+							<input
+								id="avatarUpload"
+								type="file"
+								accept="image/png,image/jpeg"
+								className="hidden"
+								onChange={(e) => {
+									setUploadError(null);
+									const file = e.target.files?.[0];
+									if (!file) return;
+									uploadMutation.mutate(file, {
+										onError: (err) => {
+											setUploadError(err.message || "Upload failed");
+										},
+									});
+								}}
 							/>
-						) : null}
-						<AvatarFallback className="rounded-lg text-lg">
-							{(user.full_name || user.email || "U")[0]?.toUpperCase()}
-						</AvatarFallback>
-					</Avatar>
-					<div className="space-y-2">
-						<input
-							id="avatarUpload"
-							type="file"
-							accept="image/png,image/jpeg"
-							className="hidden"
-							onChange={(e) => {
-								setUploadError(null);
-								const file = e.target.files?.[0];
-								if (!file) return;
-								uploadMutation.mutate(file, {
-									onError: (err) => {
-										setUploadError(err.message || "Upload failed");
-									},
-								});
-							}}
-						/>
-						<Button
-							variant="outline"
-							onClick={() => document.getElementById("avatarUpload")?.click()}
-							disabled={uploadMutation.isPending}
-						>
-							{uploadMutation.isPending ? "Uploading…" : "Change photo"}
-						</Button>
-						{uploadError && (
-							<p className="text-xs text-destructive">{uploadError}</p>
-						)}
+							<Button
+								variant="outline"
+								onClick={() => document.getElementById("avatarUpload")?.click()}
+								disabled={uploadMutation.isPending}
+							>
+								{uploadMutation.isPending ? "Uploading…" : "Change photo"}
+							</Button>
+							{uploadError && (
+								<p className="text-xs text-destructive">{uploadError}</p>
+							)}
+						</div>
 					</div>
-				</div>
-				<div className="grid gap-4">
-					<div className="space-y-2">
+					<div className="grid gap-4">
+						<div className="space-y-2">
 							<Label htmlFor="fullName">Full name</Label>
 							<Input id="fullName" value={user.full_name || ""} disabled />
 						</div>

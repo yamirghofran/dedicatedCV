@@ -29,7 +29,10 @@ function CVExportPlaceholder() {
 		"Classic" | "Modern" | "Minimal"
 	>("Classic");
 	const [isExporting, setIsExporting] = useState(false);
-	const [shareLink, setShareLink] = useState<{ url: string; expiresAt?: string } | null>(null);
+	const [shareLink, setShareLink] = useState<{
+		url: string;
+		expiresAt?: string;
+	} | null>(null);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
 	const previewRef = useRef<HTMLDivElement | null>(null);
@@ -161,7 +164,10 @@ function CVExportPlaceholder() {
 				const pdfBlob = (await pdf.output("blob")) as Blob;
 				const file = new File([pdfBlob], filename, { type: "application/pdf" });
 				const response = await cvService.createShareLink(cvId, file);
-				const linkPayload = { url: response.url, expiresAt: response.expires_at };
+				const linkPayload = {
+					url: response.url,
+					expiresAt: response.expires_at,
+				};
 				setShareLink(linkPayload);
 				await copyToClipboard(linkPayload.url);
 			}

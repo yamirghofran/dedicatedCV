@@ -10,7 +10,7 @@ import type {
 	OptimizeDescriptionRequest,
 	OptimizeDescriptionResponse,
 	ScoreCVRequest,
-	ScoreCVResponse
+	ScoreCVResponse,
 } from "../types";
 
 export const aiService = {
@@ -35,9 +35,7 @@ export const aiService = {
 	/**
 	 * Score cv on 5 pre-defined metrics
 	 */
-	scoreCv: async (
-		data: ScoreCVRequest,
-	): Promise<ScoreCVResponse> => {
+	scoreCv: async (data: ScoreCVRequest): Promise<ScoreCVResponse> => {
 		return apiClient.post("/ai/score-cv", data);
 	},
 };

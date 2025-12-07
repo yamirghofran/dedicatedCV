@@ -15,10 +15,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-	useGenerateSummary,
-	useScoreCv,
-} from "@/hooks/use-ai-optimization";
+import { useGenerateSummary, useScoreCv } from "@/hooks/use-ai-optimization";
 import { useCV } from "@/hooks/use-cvs";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ClassicTemplate, MinimalTemplate, ModernTemplate } from "@/templates";
@@ -75,7 +72,8 @@ function CVPreviewPlaceholder() {
 				},
 				{
 					label: "Professionalism",
-					value: scoreMutation.data.professionalism || fromParsed?.professionalism,
+					value:
+						scoreMutation.data.professionalism || fromParsed?.professionalism,
 				},
 			] as const
 		).filter((m) => m.value);
@@ -194,40 +192,40 @@ function CVPreviewPlaceholder() {
 					</div>
 				</div>
 
-					{/* Action Buttons */}
-					<div className="flex gap-2 flex-wrap sm:flex-nowrap">
-						<Link to="/app/cvs/$id/edit" params={{ id }}>
-							<Button
-								variant="outline"
-								size={isMobile ? "sm" : "default"}
-								className="gap-2"
-							>
-								<ArrowLeft className="h-4 w-4" />
-								{!isMobile && "Back to editor"}
-							</Button>
-						</Link>
+				{/* Action Buttons */}
+				<div className="flex gap-2 flex-wrap sm:flex-nowrap">
+					<Link to="/app/cvs/$id/edit" params={{ id }}>
 						<Button
-							variant="secondary"
+							variant="outline"
 							size={isMobile ? "sm" : "default"}
 							className="gap-2"
-							onClick={() => {
-								setIsAiSheetOpen(true);
-								if (cv && !scoreMutation.data && !scoreMutation.isPending) {
-									scoreMutation.mutate({ cv_id: cv.id });
-								}
-							}}
 						>
-							<Sparkles className="h-4 w-4" />
-							{!isMobile && "Review with AI"}
+							<ArrowLeft className="h-4 w-4" />
+							{!isMobile && "Back to editor"}
 						</Button>
-						<Link to="/app/cvs/$id/export" params={{ id }}>
-							<Button size={isMobile ? "sm" : "default"} className="gap-2">
-								<Download className="h-4 w-4" />
-								{!isMobile && "Go to export"}
-							</Button>
-						</Link>
-					</div>
+					</Link>
+					<Button
+						variant="secondary"
+						size={isMobile ? "sm" : "default"}
+						className="gap-2"
+						onClick={() => {
+							setIsAiSheetOpen(true);
+							if (cv && !scoreMutation.data && !scoreMutation.isPending) {
+								scoreMutation.mutate({ cv_id: cv.id });
+							}
+						}}
+					>
+						<Sparkles className="h-4 w-4" />
+						{!isMobile && "Review with AI"}
+					</Button>
+					<Link to="/app/cvs/$id/export" params={{ id }}>
+						<Button size={isMobile ? "sm" : "default"} className="gap-2">
+							<Download className="h-4 w-4" />
+							{!isMobile && "Go to export"}
+						</Button>
+					</Link>
 				</div>
+			</div>
 
 			<Card>
 				<CardHeader>
