@@ -1,5 +1,5 @@
 from sqlalchemy import Boolean, Column, String
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, Mapped, mapped_column
 from app.db.base import Base
 from app.db.base_class import BaseModel
 
@@ -10,7 +10,7 @@ class User(Base, BaseModel):
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     full_name = Column(String, nullable=True)
-    profile_picture_url = Column(String, nullable=True)
+    profile_picture_url: Mapped[str | None] = mapped_column(String, nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
     is_superuser = Column(Boolean, default=False, nullable=False)
 

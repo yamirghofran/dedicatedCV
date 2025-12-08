@@ -10,8 +10,6 @@ from app.db.base_class import BaseModel
 class ShareLink(Base, BaseModel):
     """Stores generated shareable links for CV PDFs."""
 
-    __tablename__ = "sharelink"
-
     cv_id = Column(
         Integer, ForeignKey("cv.id", ondelete="CASCADE"), nullable=False, index=True
     )
