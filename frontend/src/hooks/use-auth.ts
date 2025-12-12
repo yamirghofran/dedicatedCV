@@ -6,6 +6,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { LoginCredentials, UserCreate } from "@/lib/api";
 import { authService } from "@/lib/api";
+import type { User } from "@/lib/api";
 
 export const AUTH_KEYS = {
 	currentUser: ["auth", "current-user"] as const,
@@ -87,6 +88,18 @@ export function useLogout() {
 		},
 		onSuccess: () => {
 			queryClient.clear();
+		},
+	});
+}
+
+export function useUploadProfilePicture() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (file: File) => authService.uploadProfilePicture(file),
+		onSuccess: (updatedUser: User) => {
+			authService.setUser(updatedUser);
+			queryClient.setQueryData(AUTH_KEYS.currentUser, updatedUser);
 		},
 	});
 }

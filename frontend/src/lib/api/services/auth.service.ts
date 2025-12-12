@@ -69,6 +69,12 @@ export const authService = {
 		return apiClient.post<User>("auth/test-token");
 	},
 
+	async uploadProfilePicture(file: File): Promise<User> {
+		const formData = new FormData();
+		formData.append("file", file);
+		return apiClient.post<User>("auth/profile-picture", formData);
+	},
+
 	/**
 	 * Check if user is authenticated
 	 */

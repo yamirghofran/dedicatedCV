@@ -6,6 +6,7 @@ from app.api.v1.endpoints import (
     cvs,
     dashboard,
     educations,
+    exports,
     health,
     projects,
     skills,
@@ -34,3 +35,6 @@ api_router.include_router(ai.router, prefix="/ai", tags=["ai"])
 
 # Dashboard statistics endpoints (require authentication)
 api_router.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
+
+# Export/share endpoints
+api_router.include_router(exports.router)

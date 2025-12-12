@@ -39,9 +39,6 @@ function HelpFaqPage() {
 	return (
 		<div className="space-y-6">
 			<div>
-				<p className="text-sm text-muted-foreground uppercase tracking-wide">
-					Help
-				</p>
 				<h1 className="text-3xl font-bold">FAQ</h1>
 				<p className="text-muted-foreground mt-1">
 					Quick answers to common questions.

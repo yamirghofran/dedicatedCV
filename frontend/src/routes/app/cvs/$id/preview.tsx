@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Download } from "lucide-react";
+import { ArrowLeft, Download, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import {
 	ToggleGroup,
 	ToggleGroupItem,
 } from "@/components/animate-ui/components/radix/toggle-group";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -14,6 +15,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useGenerateSummary, useScoreCv } from "@/hooks/use-ai-optimization";
 import { useCV } from "@/hooks/use-cvs";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ClassicTemplate, MinimalTemplate, ModernTemplate } from "@/templates";
@@ -30,6 +32,99 @@ function CVPreviewPlaceholder() {
 	const [selectedTemplate, setSelectedTemplate] = useState<
 		"classic" | "modern" | "minimal"
 	>("classic");
+	const [isAiSheetOpen, setIsAiSheetOpen] = useState(false);
+	const scoreMutation = useScoreCv();
+	const summaryMutation = useGenerateSummary();
+
+	const parsedRawScores = useMemo(() => {
+		const raw = scoreMutation.data?.raw;
+		if (!raw) return null;
+		try {
+			const parsed = JSON.parse(raw);
+			return parsed;
+		} catch (e) {
+			return null;
+		}
+	}, [scoreMutation.data?.raw]);
+
+	const metricEntries = useMemo(() => {
+		if (!scoreMutation.data) return [];
+		const fromParsed = parsedRawScores;
+		return (
+			[
+				{
+					label: "Impact / Achievement Density",
+					value:
+						scoreMutation.data.impact_achievement_density ||
+						fromParsed?.impact_achievement_density,
+				},
+				{
+					label: "Clarity & Readability",
+					value:
+						scoreMutation.data.clarity_readability ||
+						fromParsed?.clarity_readability,
+				},
+				{
+					label: "Action Verb Strength",
+					value:
+						scoreMutation.data.action_verb_strength ||
+						fromParsed?.action_verb_strength,
+				},
+				{
+					label: "Professionalism",
+					value:
+						scoreMutation.data.professionalism || fromParsed?.professionalism,
+				},
+			] as const
+		).filter((m) => m.value);
+	}, [parsedRawScores, scoreMutation.data]);
+
+	const scoreColor = (score: number) => {
+		if (score <= 3) return "#ef4444"; // red
+		if (score <= 7) return "#f97316"; // orange
+		return "#22c55e"; // green
+	};
+
+	const CircleScore = ({ score }: { score: number }) => {
+		const radius = 25;
+		const circumference = 2 * Math.PI * radius;
+		const offset = circumference - (score / 10) * circumference;
+		const color = scoreColor(score);
+		return (
+			<div className="relative h-14 w-14">
+				<svg
+					viewBox="0 0 60 60"
+					className="h-full w-full"
+					role="img"
+					aria-label={`Score ${score}/10`}
+				>
+					<circle
+						cx="30"
+						cy="30"
+						r={radius}
+						fill="none"
+						stroke="#e5e7eb"
+						strokeWidth="6"
+					/>
+					<circle
+						cx="30"
+						cy="30"
+						r={radius}
+						fill="none"
+						stroke={color}
+						strokeWidth="6"
+						strokeDasharray={circumference}
+						strokeDashoffset={offset}
+						strokeLinecap="round"
+						transform="rotate(-90 30 30)"
+					/>
+				</svg>
+				<div className="absolute inset-0 flex items-center justify-center text-sm font-semibold">
+					{score}/10
+				</div>
+			</div>
+		);
+	};
 
 	useEffect(() => {
 		const stored = localStorage.getItem(`cv_template_${cvId}`);
@@ -109,6 +204,20 @@ function CVPreviewPlaceholder() {
 							{!isMobile && "Back to editor"}
 						</Button>
 					</Link>
+					<Button
+						variant="secondary"
+						size={isMobile ? "sm" : "default"}
+						className="gap-2"
+						onClick={() => {
+							setIsAiSheetOpen(true);
+							if (cv && !scoreMutation.data && !scoreMutation.isPending) {
+								scoreMutation.mutate({ cv_id: cv.id });
+							}
+						}}
+					>
+						<Sparkles className="h-4 w-4" />
+						{!isMobile && "Review with AI"}
+					</Button>
 					<Link to="/app/cvs/$id/export" params={{ id }}>
 						<Button size={isMobile ? "sm" : "default"} className="gap-2">
 							<Download className="h-4 w-4" />
@@ -141,6 +250,106 @@ function CVPreviewPlaceholder() {
 					</div>
 				</CardContent>
 			</Card>
+
+			<BottomSheet
+				open={isAiSheetOpen}
+				onOpenChange={setIsAiSheetOpen}
+				title="AI Optimization"
+				description="Preview AI-powered review and summary for this CV."
+				footer={
+					<div className="flex gap-2">
+						<Button
+							variant="outline"
+							className="flex-1"
+							onClick={() => setIsAiSheetOpen(false)}
+						>
+							Close
+						</Button>
+						<Button
+							className="flex-1"
+							variant="secondary"
+							onClick={() => {
+								if (cv) {
+									summaryMutation.mutate({ cv_id: cv.id });
+								}
+							}}
+							disabled={summaryMutation.isPending}
+						>
+							{summaryMutation.isPending ? "Generating…" : "Generate summary"}
+						</Button>
+					</div>
+				}
+			>
+				<div className="space-y-4">
+					<div className="space-y-2">
+						<p className="text-sm font-medium">AI Review</p>
+						{scoreMutation.isPending && (
+							<p className="text-sm text-muted-foreground">Scoring your CV…</p>
+						)}
+						{scoreMutation.isError && (
+							<p className="text-sm text-destructive">
+								Failed to score CV. {scoreMutation.error.message}
+							</p>
+						)}
+						{scoreMutation.data && (
+							<div className="space-y-2 rounded-md border p-3 bg-muted/50">
+								{scoreMutation.data.raw && metricEntries.length === 0 && (
+									<p className="text-sm whitespace-pre-line">
+										{scoreMutation.data.raw}
+									</p>
+								)}
+								{metricEntries.length > 0 && (
+									<div className="space-y-3">
+										{metricEntries.map(({ label, value }) => (
+											<div
+												key={label}
+												className="flex items-start gap-3 rounded-md bg-white/70 p-3"
+											>
+												<CircleScore score={value!.score} />
+												<div className="flex-1">
+													<p className="font-medium">{label}</p>
+													<p className="text-sm text-muted-foreground">
+														{value!.reason}
+													</p>
+												</div>
+											</div>
+										))}
+									</div>
+								)}
+								{(scoreMutation.data.summary_insight ||
+									parsedRawScores?.summary_insight) && (
+									<div className="pt-2 text-sm">
+										<p className="font-medium">Summary insight</p>
+										<p className="text-muted-foreground">
+											{scoreMutation.data.summary_insight ||
+												parsedRawScores?.summary_insight}
+										</p>
+									</div>
+								)}
+							</div>
+						)}
+					</div>
+
+					<div className="space-y-2">
+						<p className="text-sm font-medium">Professional summary</p>
+						{summaryMutation.isPending && (
+							<p className="text-sm text-muted-foreground">
+								Generating summary…
+							</p>
+						)}
+						{summaryMutation.isError && (
+							<p className="text-sm text-destructive">
+								Failed to generate summary. {summaryMutation.error.message}
+							</p>
+						)}
+						{summaryMutation.data && (
+							<div className="rounded-md border p-3 text-sm bg-muted/50">
+								{summaryMutation.data.summary}
+							</div>
+						)}
+					</div>
+				</div>
+			</BottomSheet>
 		</div>
 	);
 }

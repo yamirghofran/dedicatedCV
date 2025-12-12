@@ -57,6 +57,11 @@ class Settings(BaseSettings):
     GROQ_API_KEY: str = ""
     GROQ_MODEL: str = "llama-3.1-8b-instant"
 
+    AZURE_STORAGE_CONNECTION_STRING: str = ""
+    AZURE_STORAGE_ACCOUNT_NAME: str = ""
+    AZURE_STORAGE_PDF_CONTAINER_NAME: str = ""
+    AZURE_STORAGE_PFP_CONTAINER_NAME: str = ""
+
     @field_validator("BACKEND_CORS_ORIGINS", mode="after")
     @classmethod
     def parse_cors(cls, v: str) -> List[str]:

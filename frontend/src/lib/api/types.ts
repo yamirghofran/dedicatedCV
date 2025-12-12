@@ -8,6 +8,7 @@ export interface User {
 	id: number;
 	email: string;
 	full_name: string | null;
+	profile_picture_url?: string | null;
 	is_active: boolean;
 	is_superuser: boolean;
 	created_at: string;
@@ -270,4 +271,28 @@ export interface GenerateSummaryRequest {
 
 export interface GenerateSummaryResponse {
 	summary: string;
+}
+
+export interface ScoreCVRequest {
+	cv_id: number;
+}
+
+export interface MetricScore {
+	score: number; // 1–10
+	reason: string; // short explanation
+}
+
+export interface ScoreCVResponse {
+	raw: string;
+	impact_achievement_density?: MetricScore;
+	clarity_readability?: MetricScore;
+	action_verb_strength?: MetricScore;
+	professionalism?: MetricScore;
+	summary_insight?: string; // 2–3 sentence overview
+}
+
+// Exports
+export interface ShareLinkResponse {
+	url: string;
+	expires_at: string;
 }
