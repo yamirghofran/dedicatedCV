@@ -13,6 +13,7 @@ router = APIRouter(prefix="/translation", tags=["translation"])
 
 logger = logging.getLogger(__name__)
 
+
 @router.post("/translate-cv", response_model=TranslateCVResponse)
 def translate_cv_endpoint(
     request: TranslateCVRequest,

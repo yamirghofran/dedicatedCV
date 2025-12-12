@@ -41,6 +41,15 @@ class GenerateSummaryResponse(BaseModel):
     summary: str = Field(..., description="Generated professional summary")
 
 
+class GenerateSummaryPreviewRequest(BaseModel):
+    """Request schema for generating a summary from provided CV data."""
+
+    cv_data: dict = Field(default_factory=dict, description="CV data payload")
+    tone: Optional[str] = Field(
+        default="professional", description="Tone (professional, casual, formal)"
+    )
+
+
 class ScoreCVRequest(BaseModel):
     """Request schema for scoring a CV."""
 

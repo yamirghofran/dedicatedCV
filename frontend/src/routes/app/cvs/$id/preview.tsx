@@ -23,7 +23,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useGenerateSummary, useScoreCv } from "@/hooks/use-ai-optimization";
+import { useScoreCv } from "@/hooks/use-ai-optimization";
 import { useCV } from "@/hooks/use-cvs";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTranslateCv } from "@/hooks/use-translation";
@@ -46,7 +46,6 @@ function CVPreviewPlaceholder() {
 	const [sourceLanguage, setSourceLanguage] = useState("en");
 	const [targetLanguage, setTargetLanguage] = useState("es");
 	const scoreMutation = useScoreCv();
-	const summaryMutation = useGenerateSummary();
 	const translateMutation = useTranslateCv();
 	const sourceLanguageOptions = [
 		{ label: "English", value: "en" },
@@ -310,7 +309,7 @@ function CVPreviewPlaceholder() {
 				title={sheetMode === "ai" ? "AI Optimization" : "Translate CV"}
 				description={
 					sheetMode === "ai"
-						? "Preview AI-powered review and summary for this CV."
+						? "Preview AI-powered review for this CV."
 						: "Select the current and target languages to translate this CV."
 				}
 				footer={
@@ -322,20 +321,6 @@ function CVPreviewPlaceholder() {
 								onClick={() => setIsSheetOpen(false)}
 							>
 								Close
-							</Button>
-							<Button
-								className="flex-1"
-								variant="secondary"
-								onClick={() => {
-									if (cv) {
-										summaryMutation.mutate({ cv_id: cv.id });
-									}
-								}}
-								disabled={summaryMutation.isPending}
-							>
-								{summaryMutation.isPending
-									? "Generating…"
-									: "Generate summary"}
 							</Button>
 						</div>
 					) : (
@@ -414,25 +399,6 @@ function CVPreviewPlaceholder() {
 											</p>
 										</div>
 									)}
-								</div>
-							)}
-						</div>
-
-						<div className="space-y-2">
-							<p className="text-sm font-medium">Professional summary</p>
-							{summaryMutation.isPending && (
-								<p className="text-sm text-muted-foreground">
-									Generating summary…
-								</p>
-							)}
-							{summaryMutation.isError && (
-								<p className="text-sm text-destructive">
-									Failed to generate summary. {summaryMutation.error.message}
-								</p>
-							)}
-							{summaryMutation.data && (
-								<div className="rounded-md border p-3 text-sm bg-muted/50">
-									{summaryMutation.data.summary}
 								</div>
 							)}
 						</div>

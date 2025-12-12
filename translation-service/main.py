@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Union, cast
 
 import uvicorn
 from fastapi import FastAPI, HTTPException
@@ -121,8 +121,12 @@ class TranslateResponse(BaseModel):
 
 
 def load_translator() -> Pipeline:
-    # Force CPU usage; service does not target GPU workloads.
-    return pipeline("translation_en_to_es", model=MODEL_NAME, device=-1)
+    # Force CPU usage; override typecheck.
+    return pipeline(  # type: ignore[call-overload]
+        "translation_en_to_es", 
+        model=MODEL_NAME, 
+        device=-1
+    )
 
 
 def get_translator() -> Pipeline:
@@ -188,9 +192,7 @@ def _translate_educations(
         data["field_of_study"] = _translate_field(edu.field_of_study, translator)
         data["description"] = _translate_field(edu.description, translator)
         data["honors"] = _translate_field(edu.honors, translator)
-        data["relevant_subjects"] = _translate_field(
-            edu.relevant_subjects, translator
-        )
+        data["relevant_subjects"] = _translate_field(edu.relevant_subjects, translator)
         data["thesis_title"] = _translate_field(edu.thesis_title, translator)
         translated.append(data)
     return translated
@@ -270,6 +272,8 @@ def translate(request: TranslateRequest) -> TranslateResponse:
         )
 
     translator = get_translator()
+
+    translation: Union[str, dict[str, Any]]
 
     try:
         if has_text:

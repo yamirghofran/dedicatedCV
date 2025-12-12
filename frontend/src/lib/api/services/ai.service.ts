@@ -7,6 +7,7 @@ import { apiClient } from "../client";
 import type {
 	GenerateSummaryRequest,
 	GenerateSummaryResponse,
+	GenerateSummaryPreviewRequest,
 	OptimizeDescriptionRequest,
 	OptimizeDescriptionResponse,
 	ScoreCVRequest,
@@ -24,12 +25,18 @@ export const aiService = {
 	},
 
 	/**
-	 * Generate a professional summary based on CV data
-	 */
+ * Generate a professional summary based on CV data
+ */
 	generateSummary: async (
 		data: GenerateSummaryRequest,
 	): Promise<GenerateSummaryResponse> => {
 		return apiClient.post("/ai/generate-summary", data);
+	},
+
+	generateSummaryPreview: async (
+		data: GenerateSummaryPreviewRequest,
+	): Promise<GenerateSummaryResponse> => {
+		return apiClient.post("/ai/generate-summary-preview", data);
 	},
 
 	/**

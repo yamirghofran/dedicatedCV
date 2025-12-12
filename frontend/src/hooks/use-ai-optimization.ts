@@ -8,6 +8,7 @@ import { aiService } from "@/lib/api/services";
 import type {
 	GenerateSummaryRequest,
 	GenerateSummaryResponse,
+	GenerateSummaryPreviewRequest,
 	OptimizeDescriptionRequest,
 	OptimizeDescriptionResponse,
 	ScoreCVRequest,
@@ -33,6 +34,16 @@ export function useOptimizeDescription() {
 export function useGenerateSummary() {
 	return useMutation<GenerateSummaryResponse, Error, GenerateSummaryRequest>({
 		mutationFn: (data) => aiService.generateSummary(data),
+	});
+}
+
+export function useGenerateSummaryPreview() {
+	return useMutation<
+		GenerateSummaryResponse,
+		Error,
+		GenerateSummaryPreviewRequest
+	>({
+		mutationFn: (data) => aiService.generateSummaryPreview(data),
 	});
 }
 

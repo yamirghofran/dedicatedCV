@@ -42,8 +42,6 @@ class CustomTranslationClient:
         payload = {
             "source_language": source_language,
             "target_language": target_language,
-            # mode="json" converts dates/datetimes to ISO strings so the JSON encoder
-            # can serialize the payload.
             "cv": cv.model_dump(mode="json"),
         }
         try:
@@ -144,19 +142,24 @@ class ExternalTranslationClient:
             queue(exp.position, lambda txt, d=exp_dict: d.__setitem__("position", txt))
             queue(exp.location, lambda txt, d=exp_dict: d.__setitem__("location", txt))
             queue(
-                exp.description, lambda txt, d=exp_dict: d.__setitem__("description", txt)
+                exp.description,
+                lambda txt, d=exp_dict: d.__setitem__("description", txt),
             )
 
         for idx, edu in enumerate(cv.educations):
             edu_dict = translated_cv["educations"][idx]
-            queue(edu.institution, lambda txt, d=edu_dict: d.__setitem__("institution", txt))
+            queue(
+                edu.institution,
+                lambda txt, d=edu_dict: d.__setitem__("institution", txt),
+            )
             queue(edu.degree, lambda txt, d=edu_dict: d.__setitem__("degree", txt))
             queue(
                 edu.field_of_study,
                 lambda txt, d=edu_dict: d.__setitem__("field_of_study", txt),
             )
             queue(
-                edu.description, lambda txt, d=edu_dict: d.__setitem__("description", txt)
+                edu.description,
+                lambda txt, d=edu_dict: d.__setitem__("description", txt),
             )
             queue(edu.honors, lambda txt, d=edu_dict: d.__setitem__("honors", txt))
             queue(
@@ -209,9 +212,13 @@ class TranslationService:
             self.internal_client = CustomTranslationClient(
                 settings.TRANSLATION_SERVICE_URL
             )
-        if settings.EXTERNAL_TRANSLATION_API_URL or settings.EXTERNAL_TRANSLATION_API_KEY:
+        if (
+            settings.EXTERNAL_TRANSLATION_API_URL
+            or settings.EXTERNAL_TRANSLATION_API_KEY
+        ):
             self.external_client = ExternalTranslationClient(
-                settings.EXTERNAL_TRANSLATION_API_URL or ExternalTranslationClient.GOOGLE_V2_ENDPOINT,
+                settings.EXTERNAL_TRANSLATION_API_URL
+                or ExternalTranslationClient.GOOGLE_V2_ENDPOINT,
                 api_key=settings.EXTERNAL_TRANSLATION_API_KEY,
             )
 

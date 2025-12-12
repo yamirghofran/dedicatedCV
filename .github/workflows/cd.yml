@@ -10,6 +10,7 @@ env:
   REGISTRY: dedicatedcvacr.azurecr.io
   FRONTEND_IMAGE: dedicatedcv-frontend
   BACKEND_IMAGE: dedicatedcv-backend
+  TRANSLATION_IMAGE: dedicatedcv-translation
 
 jobs:
   build-and-push:
@@ -51,6 +52,16 @@ jobs:
           tags: ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:latest
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:buildcache
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:buildcache,mode=max
+
+      - name: Build and push translation image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./translation-service
+          file: ./translation-service/Dockerfile
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.TRANSLATION_IMAGE }}:latest
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.TRANSLATION_IMAGE }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.TRANSLATION_IMAGE }}:buildcache,mode=max
 
       - name: Image digest
         run: |

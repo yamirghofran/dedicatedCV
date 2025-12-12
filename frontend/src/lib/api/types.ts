@@ -328,6 +328,11 @@ export interface GenerateSummaryRequest {
 	tone?: "professional" | "casual" | "formal";
 }
 
+export interface GenerateSummaryPreviewRequest {
+	cv_data: Record<string, unknown>;
+	tone?: "professional" | "casual" | "formal";
+}
+
 export interface GenerateSummaryResponse {
 	summary: string;
 }
