@@ -57,10 +57,17 @@ class Settings(BaseSettings):
     GROQ_API_KEY: str = ""
     GROQ_MODEL: str = "llama-3.1-8b-instant"
 
+    # Translation services
+    TRANSLATION_SERVICE_URL: str = ""
+
+    EXTERNAL_TRANSLATION_API_URL: str = ""
+    EXTERNAL_TRANSLATION_API_KEY: str = ""
+
     AZURE_STORAGE_CONNECTION_STRING: str = ""
     AZURE_STORAGE_ACCOUNT_NAME: str = ""
     AZURE_STORAGE_PDF_CONTAINER_NAME: str = ""
     AZURE_STORAGE_PFP_CONTAINER_NAME: str = ""
+    AZURE_STORAGE_SAS_TTL_MINUTES: str = ""
 
     @field_validator("BACKEND_CORS_ORIGINS", mode="after")
     @classmethod

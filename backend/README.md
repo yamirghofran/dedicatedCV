@@ -434,15 +434,15 @@ In addition, global hooks run on all commits:
 - **Secure Token Storage**: Tokens include user ID in payload for fast lookups
 
 ### Security Best Practices
-✅ Password hashing with Argon2  
-✅ JWT tokens with expiration  
-✅ Email uniqueness validation  
-✅ Inactive user check  
-✅ Ownership verification on all operations  
-✅ OAuth2 password flow (industry standard)  
-✅ Proper HTTP status codes (401 Unauthorized, 403 Forbidden, 404 Not Found)  
-✅ CORS configuration  
-✅ SQL injection protection (SQLAlchemy ORM)  
+✅ Password hashing with Argon2
+✅ JWT tokens with expiration
+✅ Email uniqueness validation
+✅ Inactive user check
+✅ Ownership verification on all operations
+✅ OAuth2 password flow (industry standard)
+✅ Proper HTTP status codes (401 Unauthorized, 403 Forbidden, 404 Not Found)
+✅ CORS configuration
+✅ SQL injection protection (SQLAlchemy ORM)
 
 ### Important Security Notes
 

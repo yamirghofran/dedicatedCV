@@ -28,7 +28,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
-import { useOptimizeDescription } from "@/hooks/use-ai-optimization";
+import {
+	useGenerateSummaryPreview,
+	useOptimizeDescription,
+} from "@/hooks/use-ai-optimization";
 import {
 	useEducationMutations,
 	useProjectMutations,
@@ -56,6 +59,7 @@ function CVEditor() {
 	const skillMutations = useSkillMutations(cvId);
 	const projectMutations = useProjectMutations(cvId);
 	const optimizeMutation = useOptimizeDescription();
+	const generateSummaryPreview = useGenerateSummaryPreview();
 
 	// Personal info form state
 	const [form, setForm] = useState({
@@ -87,6 +91,11 @@ function CVEditor() {
 		itemId: number;
 		section: SectionType;
 	} | null>(null);
+	const [summarySheetOpen, setSummarySheetOpen] = useState(false);
+	const [summaryAi, setSummaryAi] = useState<{
+		original: string;
+		generated: string;
+	}>({ original: "", generated: "" });
 
 	// Load CV data
 	useEffect(() => {
@@ -224,6 +233,58 @@ function CVEditor() {
 		if (!item) return;
 
 		handleOptimizeWorkExperience(item);
+	};
+
+	const buildSummaryPreviewPayload = () => ({
+		cv_data: {
+			general: {
+				title: form.title,
+				full_name: form.full_name,
+				email: form.email,
+				location: form.location,
+				summary: form.summary,
+			},
+			work_experiences: cv?.work_experiences?.map((exp) => ({
+				position: exp.position,
+				company: exp.company,
+				description: exp.description,
+			})),
+			educations: cv?.educations?.map((edu) => ({
+				degree: edu.degree,
+				institution: edu.institution,
+				field_of_study: edu.field_of_study,
+			})),
+			skills: cv?.skills?.map((skill) => ({ name: skill.name })),
+		},
+		tone: "professional" as const,
+	});
+
+	const handleOpenSummaryAi = () => {
+		setSummaryAi({
+			original: form.summary || "No summary provided.",
+			generated: "",
+		});
+		setSummarySheetOpen(true);
+		generateSummaryPreview.mutate(buildSummaryPreviewPayload(), {
+			onSuccess: (data) => {
+				setSummaryAi((prev) => ({ ...prev, generated: data.summary }));
+			},
+		});
+	};
+
+	const handleApplySummaryAi = () => {
+		if (summaryAi.generated) {
+			setForm((prev) => ({ ...prev, summary: summaryAi.generated }));
+		}
+		setSummarySheetOpen(false);
+	};
+
+	const handleRegenerateSummaryAi = () => {
+		generateSummaryPreview.mutate(buildSummaryPreviewPayload(), {
+			onSuccess: (data) => {
+				setSummaryAi((prev) => ({ ...prev, generated: data.summary }));
+			},
+		});
 	};
 
 	if (isLoading || !cv) {
@@ -370,7 +431,20 @@ function CVEditor() {
 						/>
 					</div>
 					<div className="space-y-2">
-						<Label htmlFor="summary">Professional Summary</Label>
+						<div className="flex items-center justify-between gap-2">
+							<Label htmlFor="summary">Professional Summary</Label>
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								className="gap-2"
+								onClick={handleOpenSummaryAi}
+								disabled={generateSummaryPreview.isPending}
+							>
+								<Sparkles className="h-4 w-4" />
+								Generate with AI
+							</Button>
+						</div>
 						<Textarea
 							id="summary"
 							rows={5}
@@ -1091,6 +1165,84 @@ function CVEditor() {
 						</div>
 					</div>
 				)}
+			</BottomSheet>
+
+			<BottomSheet
+				open={summarySheetOpen}
+				onOpenChange={(open) => {
+					if (!open) {
+						setSummarySheetOpen(false);
+					}
+				}}
+				title="AI Summary"
+				description="Generate a professional summary using your current details."
+				footer={
+					<>
+						<Button
+							variant="outline"
+							onClick={handleRegenerateSummaryAi}
+							disabled={generateSummaryPreview.isPending}
+							className="flex-1"
+						>
+							Regenerate
+						</Button>
+						<Button
+							onClick={handleApplySummaryAi}
+							disabled={generateSummaryPreview.isPending}
+							className="flex-1"
+						>
+							Apply
+						</Button>
+					</>
+				}
+			>
+				<div className="space-y-6">
+					<div>
+						<Label className="text-sm font-medium mb-2 block">Original</Label>
+						<div className="rounded-md bg-muted p-3 text-sm">
+							{summaryAi.original || "No summary provided"}
+						</div>
+					</div>
+
+					<div>
+						<Label className="text-sm font-medium mb-2 block">
+							AI Generated
+						</Label>
+						{generateSummaryPreview.isPending ? (
+							<div className="space-y-2">
+								<Skeleton className="h-4 w-full" />
+								<Skeleton className="h-4 w-5/6" />
+								<Skeleton className="h-4 w-3/4" />
+								<p className="text-xs text-muted-foreground mt-2">
+									Generating summary…
+								</p>
+							</div>
+						) : generateSummaryPreview.isError ? (
+							<div className="rounded-md bg-destructive/10 border border-destructive/20 p-4 text-sm">
+								<p className="text-destructive font-medium mb-2">
+									Failed to generate
+								</p>
+								<p className="text-muted-foreground text-xs">
+									{generateSummaryPreview.error?.message ||
+										"Please check that the AI service is configured."}
+								</p>
+							</div>
+						) : (
+							<Textarea
+								value={summaryAi.generated}
+								onChange={(e) =>
+									setSummaryAi((prev) => ({
+										...prev,
+										generated: e.target.value,
+									}))
+								}
+								rows={10}
+								className="resize-none"
+								placeholder="AI-generated summary will appear here..."
+							/>
+						)}
+					</div>
+				</div>
 			</BottomSheet>
 		</div>
 	);

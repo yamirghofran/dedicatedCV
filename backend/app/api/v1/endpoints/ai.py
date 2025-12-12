@@ -9,6 +9,7 @@ from app.models.user import User
 from app.schemas.ai import (
     GenerateSummaryRequest,
     GenerateSummaryResponse,
+    GenerateSummaryPreviewRequest,
     OptimizeDescriptionRequest,
     OptimizeDescriptionResponse,
     ScoreCVRequest,
@@ -111,6 +112,38 @@ def generate_summary(
             cv_data=cv_data, tone=request.tone or "professional"
         )
 
+        return GenerateSummaryResponse(summary=summary)
+    except ConnectionError as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(e),
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"AI service not configured: {str(e)}",
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate summary: {str(e)}",
+        )
+
+
+@router.post("/generate-summary-preview", response_model=GenerateSummaryResponse)
+def generate_summary_preview(
+    request: GenerateSummaryPreviewRequest,
+    current_user: User = Depends(get_current_user),
+) -> GenerateSummaryResponse:
+    """
+    Generate a professional summary based on provided CV data (no DB lookup).
+    """
+    cv_data = request.cv_data or {}
+    try:
+        ai_service = get_ai_service()
+        summary = ai_service.generate_summary(
+            cv_data=cv_data, tone=request.tone or "professional"
+        )
         return GenerateSummaryResponse(summary=summary)
     except ConnectionError as e:
         raise HTTPException(
