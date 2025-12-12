@@ -178,6 +178,7 @@ jobs:
           rules_file_name: ".zap/rules.tsv"
           cmd_options: "-a -j -l WARN"
           allow_issue_writing: false
+          artifact_name: zap-scan-backend
         continue-on-error: true  # Set to false to block pipeline on security issues
 
       - name: OWASP ZAP Baseline Scan - Frontend
@@ -187,23 +188,18 @@ jobs:
           rules_file_name: ".zap/rules.tsv"
           cmd_options: "-a -j -l WARN"
           allow_issue_writing: false
+          artifact_name: zap-scan-frontend
         continue-on-error: true  # Set to false to block pipeline on security issues
-
-      - name: Upload ZAP Report
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: zap-scan-report
-          path: report_html.html
-          retention-days: 30
 
       - name: DAST Summary
         if: always()
         run: |
           echo "### DAST Security Scan Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "OWASP ZAP baseline scan completed against staging environment." >> $GITHUB_STEP_SUMMARY
-          echo "Check the uploaded artifact for the detailed report." >> $GITHUB_STEP_SUMMARY
+          echo "OWASP ZAP baseline scans completed against staging environment." >> $GITHUB_STEP_SUMMARY
+          echo "- Backend scan artifact: \`zap-scan-backend\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Frontend scan artifact: \`zap-scan-frontend\`" >> $GITHUB_STEP_SUMMARY
+          echo "Check the uploaded artifacts for detailed reports." >> $GITHUB_STEP_SUMMARY
 
   # ============================================
   # STAGE 4: PRODUCTION SUMMARY / HEALTH CHECK (NO EXPLICIT DEPLOY)
