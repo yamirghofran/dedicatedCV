@@ -15,6 +15,10 @@ RUN pip install --no-cache-dir --upgrade pip \
 
 COPY main.py .
 
+# Create an unprivileged user to avoid running as root.
+RUN addgroup --system app && adduser --system --ingroup app app
+USER app
+
 EXPOSE 8001
 
 # Use uvicorn directly; no extra process manager needed for single service container.
