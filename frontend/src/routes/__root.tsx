@@ -223,7 +223,7 @@ function RootComponent() {
 
 	return (
 		<SidebarProvider defaultOpen={!isMobile}>
-			<Sidebar collapsible="icon" className={isMobile ? "absolute md:relative z-50" : ""}>
+			<Sidebar collapsible={isMobile ? "offcanvas" : "icon"}>
 				<SidebarHeader>
 					<SidebarMenu>
 						<SidebarMenuItem>
@@ -253,7 +253,7 @@ function RootComponent() {
 									<Collapsible
 										key={item.title}
 										asChild
-										defaultOpen={item.isActive && !isMobile}
+										defaultOpen={item.isActive}
 										className="group/collapsible"
 									>
 										<SidebarMenuItem>
