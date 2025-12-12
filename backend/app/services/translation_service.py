@@ -21,6 +21,15 @@ def _normalize_language(lang: str) -> str:
         "spanish": "es",
         "es-es": "es",
         "es-mx": "es",
+        "german": "de",
+        "de-de": "de",
+        "de-at": "de",
+        "de-ch": "de",
+        "french": "fr",
+        "fr-fr": "fr",
+        "fr-ca": "fr",
+        "italian": "it",
+        "it-it": "it",
     }
     return aliases.get(cleaned, cleaned)
 
@@ -43,7 +52,7 @@ class CustomTranslationClient:
         }
         try:
             response = httpx.post(
-                f"{self.base_url}/translate", json=payload, timeout=30.0
+                f"{self.base_url}/translate", json=payload, timeout=60.0
             )
             response.raise_for_status()
         except httpx.RequestError as exc:
@@ -187,6 +196,8 @@ class ExternalTranslationClient:
 class TranslationService:
     """Selects the correct translation client based on language direction."""
 
+    SUPPORTED_EXTERNAL_LANGUAGES = {"en", "es", "de", "fr", "it"}
+
     def __init__(self):
         self.internal_client: Optional[CustomTranslationClient] = None
         self.external_client: Optional[ExternalTranslationClient] = None
@@ -216,7 +227,10 @@ class TranslationService:
                 raise ValueError("Internal translation service is not configured")
             return self.internal_client.translate_cv(cv, source, target)
 
-        if source == "es" and target == "en":
+        if (
+            source in self.SUPPORTED_EXTERNAL_LANGUAGES
+            and target in self.SUPPORTED_EXTERNAL_LANGUAGES
+        ):
             if not self.external_client:
                 raise ValueError("External translation API is not configured")
             return self.external_client.translate_cv(cv, source, target)

@@ -1,5 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Download, Languages, Sparkles } from "lucide-react";
+import {
+	ArrowLeft,
+	Download,
+	HelpCircle,
+	Languages,
+	Sparkles,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import {
 	ToggleGroup,
@@ -27,6 +33,12 @@ import { useScoreCv } from "@/hooks/use-ai-optimization";
 import { useCV } from "@/hooks/use-cvs";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTranslateCv } from "@/hooks/use-translation";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/animate-ui/components/animate/tooltip";
 import { ClassicTemplate, MinimalTemplate, ModernTemplate } from "@/templates";
 
 export const Route = createFileRoute("/app/cvs/$id/preview")({
@@ -50,14 +62,19 @@ function CVPreviewPlaceholder() {
 	const sourceLanguageOptions = [
 		{ label: "English", value: "en" },
 		{ label: "Spanish", value: "es" },
+		{ label: "French", value: "fr" },
+		{ label: "German", value: "de" },
+		{ label: "Italian", value: "it" },
 	];
 	const targetLanguageOptions = [
 		{ label: "Spanish", value: "es", disabled: false },
 		{ label: "English", value: "en", disabled: false },
-		{ label: "French (coming soon)", value: "fr", disabled: true },
-		{ label: "German (coming soon)", value: "de", disabled: true },
-		{ label: "Italian (coming soon)", value: "it", disabled: true },
+		{ label: "French", value: "fr", disabled: false },
+		{ label: "German", value: "de", disabled: false },
+		{ label: "Italian", value: "it", disabled: false },
 	];
+	const translationSupportCopy =
+		"Supports English, Spanish, French, German, and Italian. English to Spanish uses a self-hosted model; other directions use external translation.";
 
 	const parsedRawScores = useMemo(() => {
 		const raw = scoreMutation.data?.raw;
@@ -310,7 +327,7 @@ function CVPreviewPlaceholder() {
 				description={
 					sheetMode === "ai"
 						? "Preview AI-powered review for this CV."
-						: "Select the current and target languages to translate this CV."
+						: `Select the current and target languages to translate this CV.`
 				}
 				footer={
 					sheetMode === "ai" ? (
@@ -419,7 +436,27 @@ function CVPreviewPlaceholder() {
 								</Select>
 							</div>
 							<div className="space-y-2">
-								<Label htmlFor="target-language">Target language</Label>
+								<div className="flex items-center gap-2">
+									<Label htmlFor="target-language" className="mb-0">
+										Target language
+									</Label>
+									<TooltipProvider delayDuration={0}>
+										<Tooltip>
+											<TooltipTrigger asChild>
+												<button
+													type="button"
+													aria-label="Translation support details"
+													className="text-muted-foreground hover:text-foreground transition-colors"
+												>
+													<HelpCircle className="h-4 w-4" />
+												</button>
+											</TooltipTrigger>
+											<TooltipContent side="top" align="start">
+												{translationSupportCopy}
+											</TooltipContent>
+										</Tooltip>
+									</TooltipProvider>
+								</div>
 								<Select
 									value={targetLanguage}
 									onValueChange={(value) => {
@@ -441,10 +478,6 @@ function CVPreviewPlaceholder() {
 										))}
 									</SelectContent>
 								</Select>
-								<p className="text-xs text-muted-foreground">
-									English ↔ Spanish supported now; additional languages will be
-									enabled soon.
-								</p>
 							</div>
 						</div>
 						{isSameLanguage && (
