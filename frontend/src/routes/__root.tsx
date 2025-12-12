@@ -223,8 +223,8 @@ function RootComponent() {
 	}
 
 	return (
-		<SidebarProvider>
-			<Sidebar collapsible="icon">
+		<SidebarProvider defaultOpen={!isMobile}>
+			<Sidebar collapsible={isMobile ? "offcanvas" : "icon"}>
 				<SidebarHeader>
 					<SidebarMenu>
 						<SidebarMenuItem>

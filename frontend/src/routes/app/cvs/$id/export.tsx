@@ -209,57 +209,58 @@ function CVExportPlaceholder() {
 		);
 
 	return (
-		<div className="space-y-6">
-			<div className="flex items-center justify-between">
-				<div>
-					<p className="text-sm text-muted-foreground uppercase tracking-wide">
+		<div className="space-y-4 md:space-y-6">
+			<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+				<div className="min-w-0">
+					<p className="text-xs md:text-sm text-muted-foreground uppercase tracking-wide">
 						Export
 					</p>
-					<h1 className="text-3xl font-bold">Export {cv.title}</h1>
-					<p className="text-muted-foreground mt-1">
-						Download a PDF or generate a shareable link.
+					<h1 className="text-2xl md:text-3xl font-bold truncate">Export {cv.title}</h1>
+					<p className="text-xs md:text-sm text-muted-foreground mt-1">
+						Format selection and template picker will be wired here.
 					</p>
 				</div>
-				<Link to="/app/cvs/$id/preview" params={{ id }}>
-					<Button variant="outline" className="gap-2">
+				<Link to="/app/cvs/$id/preview" params={{ id }} className="w-full sm:w-auto">
+					<Button variant="outline" className="gap-2 w-full sm:w-auto text-xs md:text-sm">
 						<ArrowLeft className="h-4 w-4" />
-						Back to preview
+						<span className="hidden sm:inline">Back to preview</span>
+						<span className="sm:hidden">Back</span>
 					</Button>
 				</Link>
 			</div>
 
-			<div className="grid gap-4 md:grid-cols-3">
-				<Card className="md:col-span-2">
-					<CardHeader>
-						<CardTitle>Preview</CardTitle>
-						<CardDescription>
+			<div className="grid gap-4 grid-cols-1 lg:grid-cols-3">
+				<Card className="lg:col-span-2 order-2 lg:order-1">
+					<CardHeader className="pb-3 md:pb-6">
+						<CardTitle className="text-lg md:text-xl">Preview</CardTitle>
+						<CardDescription className="text-xs md:text-sm">
 							The exported PDF matches this view.
 						</CardDescription>
 					</CardHeader>
 					<CardContent>
 						<div
 							ref={previewRef}
-							className="aspect-[8.5/11] w-full rounded-lg border border-dashed bg-white p-4"
-							style={{ width: "100%", minHeight: 0 }}
+							className="aspect-[8.5/11] w-full rounded-lg border border-dashed bg-white p-3 md:p-4 overflow-auto"
+							style={{ width: "100%", minHeight: 0, maxHeight: "800px" }}
 						>
 							<TemplateComponent cv={cv} />
 						</div>
 					</CardContent>
 				</Card>
 
-				<div className="space-y-4">
+				<div className="space-y-4 order-1 lg:order-2">
 					<Card>
-						<CardHeader>
-							<CardTitle className="flex items-center gap-2">
+						<CardHeader className="pb-3 md:pb-6">
+							<CardTitle className="flex items-center gap-2 text-lg md:text-xl">
 								<Palette className="h-4 w-4" />
 								Template
 							</CardTitle>
-							<CardDescription>
+							<CardDescription className="text-xs md:text-sm">
 								Classic, modern, and minimal options.
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
-							<div className="grid grid-cols-3 gap-3">
+							<div className="grid grid-cols-3 gap-2 md:gap-3">
 								{(["Classic", "Modern", "Minimal"] as const).map((template) => (
 									<button
 										key={template}
@@ -277,10 +278,10 @@ function CVExportPlaceholder() {
 					</Card>
 
 					<Card>
-						<CardHeader>
-							<CardTitle>Format</CardTitle>
-							<CardDescription>
-								Pick the file type to download or share.
+						<CardHeader className="pb-3 md:pb-6">
+							<CardTitle className="text-lg md:text-xl">Format</CardTitle>
+							<CardDescription className="text-xs md:text-sm">
+								Pick the file type for download.
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-2">
@@ -314,7 +315,7 @@ function CVExportPlaceholder() {
 					</Card>
 
 					<Button
-						className="gap-2 w-full"
+						className="gap-2 w-full text-xs md:text-sm"
 						onClick={handleExport}
 						disabled={isExporting}
 					>
