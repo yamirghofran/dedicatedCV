@@ -3,13 +3,10 @@
 from __future__ import annotations
 
 import httpx
-import logging
-from typing import Callable, List, Optional
+from typing import Any, Callable, List, MutableMapping, Optional, cast
 
 from app.core.config import settings
 from app.schemas.translation import CVTranslation
-
-logger = logging.getLogger(__name__)
 
 
 def _normalize_language(lang: str) -> str:
@@ -120,76 +117,62 @@ class ExternalTranslationClient:
     def translate_cv(
         self, cv: CVTranslation, source_language: str, target_language: str
     ) -> CVTranslation:
-        translated_cv = cv.model_dump(mode="json")
+        def _dict_setter(
+            container: MutableMapping[str, Any], key: str
+        ) -> Callable[[str], None]:
+            def setter(value: str) -> None:
+                container[key] = value
+
+            return setter
+
+        translated_cv: MutableMapping[str, Any] = cast(
+            MutableMapping[str, Any], cv.model_dump(mode="json")
+        )
 
         text_queue: List[str] = []
         setters: List[Callable[[str], None]] = []
 
-        def queue(value: Optional[str], setter: Callable[[str], None]):
+        def queue(value: Optional[str], setter: Callable[[str], None]) -> None:
             cleaned = value.strip() if value else ""
             if cleaned:
                 text_queue.append(cleaned)
                 setters.append(setter)
 
-        queue(cv.title, lambda txt: translated_cv.__setitem__("title", txt))
-        queue(cv.full_name, lambda txt: translated_cv.__setitem__("full_name", txt))
-        queue(cv.location, lambda txt: translated_cv.__setitem__("location", txt))
-        queue(cv.summary, lambda txt: translated_cv.__setitem__("summary", txt))
+        queue(cv.title, _dict_setter(translated_cv, "title"))
+        queue(cv.full_name, _dict_setter(translated_cv, "full_name"))
+        queue(cv.location, _dict_setter(translated_cv, "location"))
+        queue(cv.summary, _dict_setter(translated_cv, "summary"))
 
         for idx, exp in enumerate(cv.work_experiences):
-            exp_dict = translated_cv["work_experiences"][idx]
-            queue(exp.company, lambda txt, d=exp_dict: d.__setitem__("company", txt))
-            queue(exp.position, lambda txt, d=exp_dict: d.__setitem__("position", txt))
-            queue(exp.location, lambda txt, d=exp_dict: d.__setitem__("location", txt))
-            queue(
-                exp.description,
-                lambda txt, d=exp_dict: d.__setitem__("description", txt),
+            exp_dict = cast(
+                MutableMapping[str, Any], translated_cv["work_experiences"][idx]
             )
+            queue(exp.company, _dict_setter(exp_dict, "company"))
+            queue(exp.position, _dict_setter(exp_dict, "position"))
+            queue(exp.location, _dict_setter(exp_dict, "location"))
+            queue(exp.description, _dict_setter(exp_dict, "description"))
 
         for idx, edu in enumerate(cv.educations):
-            edu_dict = translated_cv["educations"][idx]
-            queue(
-                edu.institution,
-                lambda txt, d=edu_dict: d.__setitem__("institution", txt),
-            )
-            queue(edu.degree, lambda txt, d=edu_dict: d.__setitem__("degree", txt))
-            queue(
-                edu.field_of_study,
-                lambda txt, d=edu_dict: d.__setitem__("field_of_study", txt),
-            )
-            queue(
-                edu.description,
-                lambda txt, d=edu_dict: d.__setitem__("description", txt),
-            )
-            queue(edu.honors, lambda txt, d=edu_dict: d.__setitem__("honors", txt))
-            queue(
-                edu.relevant_subjects,
-                lambda txt, d=edu_dict: d.__setitem__("relevant_subjects", txt),
-            )
-            queue(
-                edu.thesis_title,
-                lambda txt, d=edu_dict: d.__setitem__("thesis_title", txt),
-            )
+            edu_dict = cast(MutableMapping[str, Any], translated_cv["educations"][idx])
+            queue(edu.institution, _dict_setter(edu_dict, "institution"))
+            queue(edu.degree, _dict_setter(edu_dict, "degree"))
+            queue(edu.field_of_study, _dict_setter(edu_dict, "field_of_study"))
+            queue(edu.description, _dict_setter(edu_dict, "description"))
+            queue(edu.honors, _dict_setter(edu_dict, "honors"))
+            queue(edu.relevant_subjects, _dict_setter(edu_dict, "relevant_subjects"))
+            queue(edu.thesis_title, _dict_setter(edu_dict, "thesis_title"))
 
         for idx, project in enumerate(cv.projects):
-            proj_dict = translated_cv["projects"][idx]
-            queue(project.name, lambda txt, d=proj_dict: d.__setitem__("name", txt))
-            queue(
-                project.description,
-                lambda txt, d=proj_dict: d.__setitem__("description", txt),
-            )
-            queue(project.role, lambda txt, d=proj_dict: d.__setitem__("role", txt))
-            queue(
-                project.technologies,
-                lambda txt, d=proj_dict: d.__setitem__("technologies", txt),
-            )
+            proj_dict = cast(MutableMapping[str, Any], translated_cv["projects"][idx])
+            queue(project.name, _dict_setter(proj_dict, "name"))
+            queue(project.description, _dict_setter(proj_dict, "description"))
+            queue(project.role, _dict_setter(proj_dict, "role"))
+            queue(project.technologies, _dict_setter(proj_dict, "technologies"))
 
         for idx, skill in enumerate(cv.skills):
-            skill_dict = translated_cv["skills"][idx]
-            queue(skill.name, lambda txt, d=skill_dict: d.__setitem__("name", txt))
-            queue(
-                skill.category, lambda txt, d=skill_dict: d.__setitem__("category", txt)
-            )
+            skill_dict = cast(MutableMapping[str, Any], translated_cv["skills"][idx])
+            queue(skill.name, _dict_setter(skill_dict, "name"))
+            queue(skill.category, _dict_setter(skill_dict, "category"))
 
         if text_queue:
             translated_texts = self._translate_texts(
@@ -228,8 +211,6 @@ class TranslationService:
         source = _normalize_language(input_language)
         target = _normalize_language(output_language)
 
-        logger.info(f"Source: {source} Target: {target}")
-
         if source == "en" and target == "es":
             if not self.internal_client:
                 raise ValueError("Internal translation service is not configured")
@@ -248,7 +229,6 @@ _translation_service: Optional[TranslationService] = None
 
 def get_translation_service() -> TranslationService:
     """Return singleton translation service instance."""
-    logger.info("dkdjsdfjs")
     global _translation_service
     if _translation_service is None:
         _translation_service = TranslationService()
