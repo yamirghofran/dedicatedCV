@@ -10,6 +10,7 @@ from app.api.v1.endpoints import (
     health,
     projects,
     skills,
+    translation,
     work_experiences,
 )
 
@@ -38,3 +39,6 @@ api_router.include_router(dashboard.router, prefix="/dashboard", tags=["dashboar
 
 # Export/share endpoints
 api_router.include_router(exports.router)
+
+# Translation endpoints
+api_router.include_router(translation.router)

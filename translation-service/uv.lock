@@ -1001,6 +1001,7 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "fastapi" },
+    { name = "pydantic" },
     { name = "sentencepiece" },
     { name = "torch" },
     { name = "transformers" },
@@ -1010,6 +1011,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "fastapi", specifier = ">=0.110.0" },
+    { name = "pydantic" },
     { name = "sentencepiece", specifier = ">=0.2.0" },
     { name = "torch", specifier = ">=2.2.1" },
     { name = "transformers", specifier = ">=4.38.2" },

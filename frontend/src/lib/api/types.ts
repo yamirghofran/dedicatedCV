@@ -239,6 +239,65 @@ export interface DashboardStats {
 	incomplete_cvs: IncompleteCVInfo[];
 }
 
+// Translation
+export interface TranslateCVRequest {
+	input_language: string;
+	output_language: string;
+	cv: CVWithRelations;
+}
+
+export interface TranslatedWorkExperience {
+	id?: number;
+	company?: string | null;
+	position?: string | null;
+	location?: string | null;
+	description?: string | null;
+}
+
+export interface TranslatedEducation {
+	id?: number;
+	institution?: string | null;
+	degree?: string | null;
+	field_of_study?: string | null;
+	description?: string | null;
+	honors?: string | null;
+	relevant_subjects?: string | null;
+	thesis_title?: string | null;
+}
+
+export interface TranslatedProject {
+	id?: number;
+	name?: string | null;
+	description?: string | null;
+	role?: string | null;
+	technologies?: string | null;
+}
+
+export interface TranslatedSkill {
+	id?: number;
+	name?: string | null;
+	category?: string | null;
+}
+
+export interface TranslatedCV {
+	id?: number;
+	user_id?: number;
+	title?: string | null;
+	full_name?: string | null;
+	email?: string | null;
+	phone?: string | null;
+	location?: string | null;
+	summary?: string | null;
+	work_experiences?: TranslatedWorkExperience[];
+	educations?: TranslatedEducation[];
+	projects?: TranslatedProject[];
+	skills?: TranslatedSkill[];
+}
+
+export interface TranslateCVResponse {
+	translation: TranslatedCV;
+}
+
 // Health
 export interface HealthCheck {
 	status: string;

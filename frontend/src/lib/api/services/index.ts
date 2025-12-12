@@ -9,4 +9,5 @@ export * from "./cv.service";
 export * from "./education.service";
 export * from "./project.service";
 export * from "./skill.service";
+export * from "./translation.service";
 export * from "./work-experience.service";

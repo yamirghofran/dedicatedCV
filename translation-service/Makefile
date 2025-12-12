@@ -22,7 +22,7 @@ dev:
 	uv sync --all-extras
 
 run:
-	uv run uvicorn main:app --reload --host 0.0.0.0 --port 8000
+	uv run uvicorn main:app --reload --host 0.0.0.0 --port 8001
 
 lint:
 	uv run ruff check .
