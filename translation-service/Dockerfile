@@ -15,11 +15,20 @@ RUN pip install --no-cache-dir --upgrade pip \
 
 COPY main.py .
 
+# Create cache dir before switching user
+RUN mkdir -p /app/.cache/huggingface \
+    && addgroup --system app \
+    && adduser --system --ingroup app app \
+    && chown -R app:app /app
+
 # Create an unprivileged user to avoid running as root.
 RUN addgroup --system app && adduser --system --ingroup app app
 USER app
 
+ENV TRANSFORMERS_CACHE=/app/.cache/huggingface \
+    HF_HOME=/app/.cache/huggingface
+
 EXPOSE 8001
 
 # Use uvicorn directly; no extra process manager needed for single service container.
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001"]
+CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001"]
