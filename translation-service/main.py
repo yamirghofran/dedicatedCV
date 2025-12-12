@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Any, List, Optional, Union, cast
+from typing import Any, List, Optional, Union
 
 import uvicorn
 from fastapi import FastAPI, HTTPException
@@ -123,9 +123,7 @@ class TranslateResponse(BaseModel):
 def load_translator() -> Pipeline:
     # Force CPU usage; override typecheck.
     return pipeline(  # type: ignore[call-overload]
-        "translation_en_to_es",
-        model=MODEL_NAME,
-        device=-1
+        "translation_en_to_es", model=MODEL_NAME, device=-1
     )
 
 
