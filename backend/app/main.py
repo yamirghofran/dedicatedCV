@@ -39,9 +39,9 @@ async def lifespan(app: FastAPI):
                 {
                     "app_name": settings.APP_NAME,
                     "version": settings.APP_VERSION,
-                    "environment": "production"
-                    if not settings.DEBUG
-                    else "development",
+                    "environment": (
+                        "production" if not settings.DEBUG else "development"
+                    ),
                 },
             )
         else:

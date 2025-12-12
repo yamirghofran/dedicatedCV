@@ -27,11 +27,18 @@ class ApiClient {
 	}
 
 	private handleUnauthorized() {
+		// Clear ALL auth-related data
 		localStorage.removeItem("access_token");
 		localStorage.removeItem("user");
+
+		// Clear any React Query cache if available
 		if (typeof window !== "undefined") {
+			// Dispatch a custom event that the app can listen to
+			window.dispatchEvent(new CustomEvent("auth:unauthorized"));
+
 			const currentPath = window.location.pathname;
 			if (!currentPath.startsWith("/auth")) {
+				// Force redirect to login
 				window.location.assign("/auth/login");
 			}
 		}
@@ -64,7 +71,7 @@ class ApiClient {
 		// Add auth token if available
 		const token = this.getAuthToken();
 		if (token) {
-			requestHeaders["Authorization"] = `Bearer ${token}`;
+			requestHeaders.Authorization = `Bearer ${token}`;
 		}
 
 		// Prepare body

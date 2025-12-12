@@ -1,4 +1,4 @@
-Welcome to your new TanStack app! 
+Welcome to your new TanStack app!
 
 # Getting Started
 
@@ -40,6 +40,44 @@ bun --bun run lint
 bun --bun run format
 bun --bun run check
 ```
+
+## Pre-commit setup
+
+This repository uses [`pre-commit`](https://pre-commit.com/) at the root (`dedicatedCV/`) to run frontend checks before each commit.
+
+From the **repo root** (not the `frontend/` subdirectory):
+
+1. **Install pre-commit** (one-time):
+
+   ```bash
+   pipx install pre-commit
+   # or, with uv
+   uv tool install pre-commit
+   ```
+
+2. **Install the git hooks** (one-time per clone):
+
+   ```bash
+   pre-commit install
+   ```
+
+3. **Run on all files once** (recommended after setup):
+
+   ```bash
+   pre-commit run --all-files
+   ```
+
+### What runs for the frontend
+
+When you commit changes that touch `frontend/src/**/*.{ts,tsx,js,jsx}`, pre-commit will:
+
+- Run **Biome check** via `bunx biome check --apply` on the staged frontend files, which formats code and applies safe lint fixes automatically.
+
+In addition, global hooks run on all commits:
+
+- Basic hygiene checks (trailing whitespace, EOF, merge-conflict markers).
+- Config validation for YAML/TOML/JSON files.
+- **Gitleaks** secret scanning using the repo’s `.gitleaks.toml` configuration.
 
 
 ## Shadcn

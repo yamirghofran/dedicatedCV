@@ -8,6 +8,7 @@ export interface User {
 	id: number;
 	email: string;
 	full_name: string | null;
+	profile_picture_url?: string | null;
 	is_active: boolean;
 	is_superuser: boolean;
 	created_at: string;
@@ -221,10 +222,141 @@ export interface ProjectUpdate {
 	display_order?: number;
 }
 
+// Dashboard
+export interface IncompleteCVInfo {
+	id: number;
+	title: string;
+	completion_rate: number;
+	missing_sections: string[];
+}
+
+export interface DashboardStats {
+	total_cvs: number;
+	templates_used: number;
+	avg_completion_rate: number;
+	last_activity: string;
+	recent_cvs: CV[];
+	incomplete_cvs: IncompleteCVInfo[];
+}
+
+// Translation
+export interface TranslateCVRequest {
+	input_language: string;
+	output_language: string;
+	cv: CVWithRelations;
+}
+
+export interface TranslatedWorkExperience {
+	id?: number;
+	company?: string | null;
+	position?: string | null;
+	location?: string | null;
+	description?: string | null;
+}
+
+export interface TranslatedEducation {
+	id?: number;
+	institution?: string | null;
+	degree?: string | null;
+	field_of_study?: string | null;
+	description?: string | null;
+	honors?: string | null;
+	relevant_subjects?: string | null;
+	thesis_title?: string | null;
+}
+
+export interface TranslatedProject {
+	id?: number;
+	name?: string | null;
+	description?: string | null;
+	role?: string | null;
+	technologies?: string | null;
+}
+
+export interface TranslatedSkill {
+	id?: number;
+	name?: string | null;
+	category?: string | null;
+}
+
+export interface TranslatedCV {
+	id?: number;
+	user_id?: number;
+	title?: string | null;
+	full_name?: string | null;
+	email?: string | null;
+	phone?: string | null;
+	location?: string | null;
+	summary?: string | null;
+	work_experiences?: TranslatedWorkExperience[];
+	educations?: TranslatedEducation[];
+	projects?: TranslatedProject[];
+	skills?: TranslatedSkill[];
+}
+
+export interface TranslateCVResponse {
+	translation: TranslatedCV;
+}
+
 // Health
 export interface HealthCheck {
 	status: string;
 	app_name: string;
 	version: string;
 	database: string;
+}
+
+// AI Optimization
+export interface OptimizeDescriptionRequest {
+	original_text: string;
+	field_type: "work_experience" | "education" | "project" | "summary";
+	context?: {
+		position?: string;
+		company?: string;
+		duration?: string;
+		[key: string]: string | undefined;
+	};
+}
+
+export interface OptimizeDescriptionResponse {
+	original: string;
+	optimized: string;
+}
+
+export interface GenerateSummaryRequest {
+	cv_id: number;
+	tone?: "professional" | "casual" | "formal";
+}
+
+export interface GenerateSummaryPreviewRequest {
+	cv_data: Record<string, unknown>;
+	tone?: "professional" | "casual" | "formal";
+}
+
+export interface GenerateSummaryResponse {
+	summary: string;
+}
+
+export interface ScoreCVRequest {
+	cv_id: number;
+}
+
+export interface MetricScore {
+	score: number; // 1–10
+	reason: string; // short explanation
+}
+
+export interface ScoreCVResponse {
+	raw: string;
+	impact_achievement_density?: MetricScore;
+	clarity_readability?: MetricScore;
+	action_verb_strength?: MetricScore;
+	professionalism?: MetricScore;
+	summary_insight?: string; // 2–3 sentence overview
+}
+
+// Exports
+export interface ShareLinkResponse {
+	url: string;
+	expires_at: string;
 }

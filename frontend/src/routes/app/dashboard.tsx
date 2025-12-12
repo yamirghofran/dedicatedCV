@@ -1,32 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import {
-	Copy,
-	Eye,
-	FileText,
-	MoreVertical,
-	Pencil,
-	Plus,
-	Trash2,
-} from "lucide-react";
-import { useMemo, useState } from "react";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from "@/components/animate-ui/components/radix/dropdown-menu";
+import { AlertCircle, Plus } from "lucide-react";
+import { RecentCVs } from "@/components/dashboard/RecentCVs";
+import { StatsCards } from "@/components/dashboard/StatsCards";
 import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardFooter,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
 import { useCurrentUser } from "@/hooks/use-auth";
-import { useCreateCV, useCVs, useDeleteCV } from "@/hooks/use-cvs";
-import type { CV } from "@/lib/api";
+import { useDashboardStats } from "@/hooks/use-dashboard";
 
 export const Route = createFileRoute("/app/dashboard")({
 	component: DashboardPage,
@@ -34,71 +12,39 @@ export const Route = createFileRoute("/app/dashboard")({
 
 function DashboardPage() {
 	const { data: user } = useCurrentUser();
-	const { data: cvs, isLoading, isError } = useCVs();
-	const { mutate: deleteCV } = useDeleteCV();
-	const { mutate: createCV, isPending: isDuplicating } = useCreateCV();
-	const [message, setMessage] = useState<string | null>(null);
+	const { data: stats, isLoading, isError } = useDashboardStats();
 
-	const handleDelete = (id: number, title: string) => {
-		if (confirm(`Delete "${title}"? This cannot be undone.`)) {
-			deleteCV(id);
-		}
-	};
-
-	const handleDuplicate = (cv: CV) => {
-		createCV(
-			{
-				title: `${cv.title} (Copy)`,
-				full_name: cv.full_name,
-				email: cv.email,
-				phone: cv.phone ?? "",
-				location: cv.location ?? "",
-				summary: cv.summary ?? "",
-			},
-			{
-				onSuccess: () => {
-					setMessage(`Duplicated "${cv.title}"`);
-					setTimeout(() => setMessage(null), 2500);
-				},
-				onError: () => {
-					setMessage("Could not duplicate CV");
-					setTimeout(() => setMessage(null), 2500);
-				},
-			},
-		);
-	};
-
-	const emptyState = useMemo(() => {
-		if (isError) {
-			return (
-				<Card className="border-dashed">
-					<CardContent className="py-8 text-center text-sm text-destructive">
-						Unable to load CVs. Please retry.
-					</CardContent>
-				</Card>
-			);
-		}
+	// Error state
+	if (isError) {
 		return (
-			<Card className="border-dashed">
-				<CardContent className="flex flex-col items-center justify-center py-12">
-					<div className="p-4 bg-muted rounded-full mb-4">
-						<FileText className="h-12 w-12 text-muted-foreground" />
+			<div className="space-y-6">
+				<div className="flex items-center justify-between">
+					<div>
+						<h1 className="text-2xl md:text-3xl font-bold">Dashboard</h1>
+						<p className="text-muted-foreground mt-1">
+							Unable to load dashboard statistics
+						</p>
 					</div>
-					<h3 className="text-lg font-semibold mb-2">No CVs yet</h3>
-					<p className="text-muted-foreground text-center mb-4 max-w-sm">
-						Create your first professional resume to get started. It only takes
-						a few minutes!
-					</p>
-					<Link to="/app/cvs/new">
-						<Button className="gap-2">
-							<Plus className="h-4 w-4" />
-							Create Your First CV
-						</Button>
-					</Link>
-				</CardContent>
-			</Card>
+				</div>
+				<div className="flex items-center gap-3 p-4 border border-destructive/50 bg-destructive/5 rounded-lg">
+					<AlertCircle className="h-5 w-5 text-destructive shrink-0" />
+					<div className="flex-1">
+						<p className="text-sm font-medium">Failed to load dashboard data</p>
+						<p className="text-xs text-muted-foreground mt-1">
+							Please try refreshing the page
+						</p>
+					</div>
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={() => window.location.reload()}
+					>
+						Refresh
+					</Button>
+				</div>
+			</div>
 		);
-	}, [isError]);
+	}
 
 	return (
 		<div className="space-y-4 md:space-y-6">
@@ -106,7 +52,7 @@ function DashboardPage() {
 				<div className="min-w-0">
 					<h1 className="text-2xl md:text-3xl font-bold">
 						Welcome back,{" "}
-						{user?.full_name || user?.email?.split("@")[0] || "there"}
+						{user?.full_name || user?.email?.split("@")[0] || "there"}!
 					</h1>
 					<p className="text-sm md:text-base text-muted-foreground mt-1">
 						Manage your professional resumes
@@ -121,12 +67,20 @@ function DashboardPage() {
 				</Link>
 			</div>
 
-			<div>
-				<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
-					<h2 className="text-lg md:text-xl font-semibold">Your CVs</h2>
-					{message && (
-						<span className="text-xs md:text-sm text-muted-foreground">{message}</span>
-					)}
+			{/* Stats Cards */}
+			<StatsCards
+				totalCVs={stats?.total_cvs ?? 0}
+				templatesUsed={stats?.templates_used ?? 0}
+				avgCompletion={stats?.avg_completion_rate ?? 0}
+				lastActivity={stats?.last_activity ?? new Date().toISOString()}
+				isLoading={isLoading}
+			/>
+
+			{/* Recent CVs */}
+			<RecentCVs cvs={stats?.recent_cvs ?? []} isLoading={isLoading} />
+		</div>
+	);
+}
 				</div>
 
 				{isLoading ? (
@@ -245,6 +199,19 @@ function DashboardPage() {
 					emptyState
 				)}
 			</div>
+=======
+			{/* Stats Cards */}
+			<StatsCards
+				totalCVs={stats?.total_cvs ?? 0}
+				templatesUsed={stats?.templates_used ?? 0}
+				avgCompletion={stats?.avg_completion_rate ?? 0}
+				lastActivity={stats?.last_activity ?? new Date().toISOString()}
+				isLoading={isLoading}
+			/>
+
+			{/* Recent CVs */}
+			<RecentCVs cvs={stats?.recent_cvs ?? []} isLoading={isLoading} />
+>>>>>>> origin/main
 		</div>
 	);
 }

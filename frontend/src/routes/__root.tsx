@@ -138,11 +138,12 @@ function RootComponent() {
 	// Check if we're on an auth page (login/register)
 	const isAuthPage = routerState.location.pathname.startsWith("/auth");
 
+	// If no current user, we should not be showing anything
+	// The route protection should have already redirected to login
 	const displayName =
-		currentUser?.full_name ||
-		(currentUser?.email ? currentUser.email.split("@")[0] : "Guest User");
-	const displayEmail = currentUser?.email || "guest@cvmaker.com";
-	const initials = getInitials(displayName, displayEmail);
+		currentUser?.full_name || currentUser?.email?.split("@")[0] || "";
+	const displayEmail = currentUser?.email || "";
+	const initials = currentUser ? getInitials(displayName, displayEmail) : "";
 
 	const breadcrumbMap: Record<string, string> = {
 		"/": "Home",
@@ -229,11 +230,9 @@ function RootComponent() {
 						<SidebarMenuItem>
 							<SidebarMenuButton size="lg" asChild>
 								<Link to="/">
-									<div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-										<FileText className="size-4" />
-									</div>
+									<div className="flex aspect-square size-8 items-center justify-center rounded-full bg-sidebar-primary text-sidebar-primary-foreground"></div>
 									<div className="grid flex-1 text-left text-sm leading-tight">
-										<span className="truncate font-semibold">CV Maker</span>
+										<span className="truncate font-semibold">DedicatedCV</span>
 										<span className="truncate text-xs">
 											Professional Resumes
 										</span>

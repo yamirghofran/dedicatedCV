@@ -39,7 +39,7 @@ type SheetOverlayProps = SheetOverlayPrimitiveProps;
 function SheetOverlay({ className, ...props }: SheetOverlayProps) {
 	return (
 		<SheetOverlayPrimitive
-			className={cn("fixed inset-0 z-50 bg-black/50", className)}
+			className={cn("fixed inset-0 z-40 bg-black/50", className)}
 			{...props}
 		/>
 	);
@@ -67,9 +67,9 @@ function SheetContent({
 			<SheetOverlay />
 			<SheetContentPrimitive
 				className={cn(
-					"bg-background fixed z-50 flex flex-col gap-4 shadow-none",
-					side === "right" && "h-full w-[350px] border-l",
-					side === "left" && "h-full w-[350px] border-r",
+					"bg-white text-black fixed z-50 flex flex-col gap-4 shadow-xl h-full",
+					side === "right" && "w-[350px] border-l",
+					side === "left" && "w-[350px] border-r",
 					side === "top" && "w-full h-[350px] border-b",
 					side === "bottom" && "w-full h-[350px] border-t",
 					className,
