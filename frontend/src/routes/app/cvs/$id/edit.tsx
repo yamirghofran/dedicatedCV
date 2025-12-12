@@ -92,9 +92,10 @@ function CVEditor() {
 		section: SectionType;
 	} | null>(null);
 	const [summarySheetOpen, setSummarySheetOpen] = useState(false);
-	const [summaryAi, setSummaryAi] = useState<{ original: string; generated: string }>(
-		{ original: "", generated: "" },
-	);
+	const [summaryAi, setSummaryAi] = useState<{
+		original: string;
+		generated: string;
+	}>({ original: "", generated: "" });
 
 	// Load CV data
 	useEffect(() => {

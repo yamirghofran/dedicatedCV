@@ -25,8 +25,8 @@ export const aiService = {
 	},
 
 	/**
- * Generate a professional summary based on CV data
- */
+	 * Generate a professional summary based on CV data
+	 */
 	generateSummary: async (
 		data: GenerateSummaryRequest,
 	): Promise<GenerateSummaryResponse> => {

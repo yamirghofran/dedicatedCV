@@ -279,7 +279,7 @@ function CVPreviewPlaceholder() {
 				</div>
 			</div>
 
-			<Card style={{maxWidth: "80vw"}}>
+			<Card style={{ maxWidth: "80vw" }}>
 				<CardHeader>
 					<CardTitle>Preview</CardTitle>
 					<CardDescription>
@@ -336,15 +336,9 @@ function CVPreviewPlaceholder() {
 							<Button
 								className="flex-1"
 								onClick={handleTranslate}
-								disabled={
-									!cv ||
-									translateMutation.isPending ||
-									isSameLanguage
-								}
+								disabled={!cv || translateMutation.isPending || isSameLanguage}
 							>
-								{translateMutation.isPending
-									? "Translating…"
-									: "Translate"}
+								{translateMutation.isPending ? "Translating…" : "Translate"}
 							</Button>
 						</div>
 					)

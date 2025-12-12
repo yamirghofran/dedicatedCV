@@ -123,8 +123,8 @@ class TranslateResponse(BaseModel):
 def load_translator() -> Pipeline:
     # Force CPU usage; override typecheck.
     return pipeline(  # type: ignore[call-overload]
-        "translation_en_to_es", 
-        model=MODEL_NAME, 
+        "translation_en_to_es",
+        model=MODEL_NAME,
         device=-1
     )
 

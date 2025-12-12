@@ -40,9 +40,10 @@ function NewCVPage() {
 		"projects",
 	]);
 	const [isSummarySheetOpen, setIsSummarySheetOpen] = useState(false);
-	const [summaryAi, setSummaryAi] = useState<{ original: string; generated: string }>(
-		{ original: "", generated: "" },
-	);
+	const [summaryAi, setSummaryAi] = useState<{
+		original: string;
+		generated: string;
+	}>({ original: "", generated: "" });
 
 	const { mutate: createCV, isPending } = useCreateCV();
 	const generateSummaryPreview = useGenerateSummaryPreview();

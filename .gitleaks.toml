@@ -53,4 +53,3 @@ regexes = [
 # description = "Custom secret pattern"
 # regex = '''custom-pattern'''
 # tags = ["custom"]
-
