@@ -101,35 +101,36 @@ function DashboardPage() {
 	}, [isError]);
 
 	return (
-		<div className="space-y-6">
-			<div className="flex items-center justify-between">
-				<div>
-					<h1 className="text-3xl font-bold">
+		<div className="space-y-4 md:space-y-6">
+			<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+				<div className="min-w-0">
+					<h1 className="text-2xl md:text-3xl font-bold">
 						Welcome back,{" "}
 						{user?.full_name || user?.email?.split("@")[0] || "there"}
 					</h1>
-					<p className="text-muted-foreground mt-1">
+					<p className="text-sm md:text-base text-muted-foreground mt-1">
 						Manage your professional resumes
 					</p>
 				</div>
-				<Link to="/app/cvs/new">
-					<Button size="lg" className="gap-2">
-						<Plus className="h-5 w-5" />
-						Create New CV
+				<Link to="/app/cvs/new" className="w-full sm:w-auto">
+					<Button size="lg" className="gap-2 w-full sm:w-auto">
+						<Plus className="h-4 w-4 md:h-5 md:w-5" />
+						<span className="hidden sm:inline">Create New CV</span>
+						<span className="sm:hidden">Create CV</span>
 					</Button>
 				</Link>
 			</div>
 
 			<div>
-				<div className="flex items-center justify-between mb-4">
-					<h2 className="text-xl font-semibold">Your CVs</h2>
+				<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+					<h2 className="text-lg md:text-xl font-semibold">Your CVs</h2>
 					{message && (
-						<span className="text-sm text-muted-foreground">{message}</span>
+						<span className="text-xs md:text-sm text-muted-foreground">{message}</span>
 					)}
 				</div>
 
 				{isLoading ? (
-					<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+					<div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
 						{[1, 2, 3].map((i) => (
 							<Card key={i} className="animate-pulse">
 								<CardHeader className="space-y-2">
@@ -143,18 +144,18 @@ function DashboardPage() {
 						))}
 					</div>
 				) : cvs && cvs.length > 0 ? (
-					<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+					<div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
 						{cvs.map((cv) => (
-							<Card key={cv.id} className="transition-none">
-								<CardHeader>
-									<div className="flex items-start justify-between">
-										<div className="flex items-start gap-3 flex-1">
-											<div className="p-2 bg-primary/10 rounded-lg">
-												<FileText className="h-5 w-5 text-primary" />
+							<Card key={cv.id} className="transition-none flex flex-col">
+								<CardHeader className="pb-3">
+									<div className="flex items-start justify-between gap-2">
+										<div className="flex items-start gap-2 flex-1 min-w-0">
+											<div className="p-2 bg-primary/10 rounded-lg flex-shrink-0">
+												<FileText className="h-4 w-4 md:h-5 md:w-5 text-primary" />
 											</div>
 											<div className="flex-1 min-w-0">
-												<CardTitle className="truncate">{cv.title}</CardTitle>
-												<CardDescription className="truncate">
+												<CardTitle className="truncate text-base">{cv.title}</CardTitle>
+												<CardDescription className="truncate text-xs md:text-sm">
 													{cv.full_name}
 												</CardDescription>
 											</div>
@@ -164,7 +165,7 @@ function DashboardPage() {
 												<Button
 													variant="ghost"
 													size="sm"
-													className="h-8 w-8 p-0"
+													className="h-8 w-8 p-0 flex-shrink-0"
 												>
 													<MoreVertical className="h-4 w-4" />
 												</Button>
@@ -209,21 +210,21 @@ function DashboardPage() {
 										</DropdownMenu>
 									</div>
 								</CardHeader>
-								<CardContent>
-									<div className="space-y-2 text-sm text-muted-foreground">
+								<CardContent className="pb-3 flex-1">
+									<div className="space-y-1 text-xs md:text-sm text-muted-foreground">
 										<p className="truncate">{cv.email}</p>
 										{cv.summary && (
 											<p className="line-clamp-2 text-xs">{cv.summary}</p>
 										)}
 									</div>
 								</CardContent>
-								<CardFooter className="flex gap-2">
+								<CardFooter className="flex gap-2 pt-0">
 									<Link
 										to="/app/cvs/$id/edit"
 										params={{ id: cv.id.toString() }}
 										className="flex-1"
 									>
-										<Button variant="outline" className="w-full">
+										<Button variant="outline" className="w-full text-xs md:text-sm">
 											Edit
 										</Button>
 									</Link>
@@ -232,7 +233,7 @@ function DashboardPage() {
 										params={{ id: cv.id.toString() }}
 										className="flex-1"
 									>
-										<Button variant="outline" className="w-full">
+										<Button variant="outline" className="w-full text-xs md:text-sm">
 											Preview
 										</Button>
 									</Link>

@@ -140,14 +140,14 @@ function CVEditor() {
 	}
 
 	return (
-		<div className="space-y-6">
-			<div className="flex items-center justify-between">
-				<div>
-					<p className="text-sm text-muted-foreground uppercase tracking-wide">
+		<div className="space-y-4 md:space-y-6">
+			<div className="flex flex-col sm:flex-row items-start sm:items-start justify-between gap-4">
+				<div className="min-w-0">
+					<p className="text-xs md:text-sm text-muted-foreground uppercase tracking-wide">
 						CV Editor
 					</p>
-					<h1 className="text-3xl font-bold">{cv.title}</h1>
-					<p className="text-muted-foreground mt-1">
+					<h1 className="text-2xl md:text-3xl font-bold truncate">{cv.title}</h1>
+					<p className="text-xs md:text-sm text-muted-foreground mt-1">
 						Edit your base information and then add experiences, education,
 						skills, and projects.
 					</p>
@@ -157,23 +157,25 @@ function CVEditor() {
 						</p>
 					)}
 				</div>
-				<div className="flex gap-2">
-					<Link to="/app/cvs/$id/preview" params={{ id: cv.id.toString() }}>
-						<Button variant="outline" className="gap-2">
+				<div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+					<Link to="/app/cvs/$id/preview" params={{ id: cv.id.toString() }} className="flex-1 sm:flex-none">
+						<Button variant="outline" className="gap-2 w-full sm:w-auto text-xs md:text-sm">
 							<Eye className="h-4 w-4" />
-							Preview
+							<span className="hidden sm:inline">Preview</span>
+							<span className="sm:hidden">View</span>
 						</Button>
 					</Link>
-					<Link to="/app/cvs/$id/export" params={{ id: cv.id.toString() }}>
-						<Button variant="outline" className="gap-2">
+					<Link to="/app/cvs/$id/export" params={{ id: cv.id.toString() }} className="flex-1 sm:flex-none">
+						<Button variant="outline" className="gap-2 w-full sm:w-auto text-xs md:text-sm">
 							<Download className="h-4 w-4" />
-							Export
+							<span className="hidden sm:inline">Export</span>
+							<span className="sm:hidden">PDF</span>
 						</Button>
 					</Link>
 					<Button
 						onClick={handleSave}
 						disabled={!isDirty || isSaving}
-						className="gap-2"
+						className="gap-2 flex-1 sm:flex-none text-xs md:text-sm"
 					>
 						{isSaving || autoSaveStatus === "saving"
 							? "Saving…"
@@ -186,68 +188,74 @@ function CVEditor() {
 				</div>
 			</div>
 
-			<div className="grid ">
+			<div className="grid">
 				<Card className="md:col-span-2" ref={personalRef}>
-					<CardHeader>
-						<CardTitle>Personal & Summary</CardTitle>
-						<CardDescription>
+					<CardHeader className="pb-3 md:pb-6">
+						<CardTitle className="text-lg md:text-xl">Personal & Summary</CardTitle>
+						<CardDescription className="text-xs md:text-sm">
 							Save updates to persist to the backend.
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">
-						<div className="grid gap-4 md:grid-cols-2">
+						<div className="grid gap-4 grid-cols-1 md:grid-cols-2">
 							<div className="space-y-2">
-								<Label htmlFor="title">CV Title</Label>
+								<Label htmlFor="title" className="text-xs md:text-sm">CV Title</Label>
 								<Input
 									id="title"
 									value={form.title}
 									onChange={handleChange("title")}
+									className="text-xs md:text-sm"
 								/>
 							</div>
 							<div className="space-y-2">
-								<Label htmlFor="full_name">Full Name</Label>
+								<Label htmlFor="full_name" className="text-xs md:text-sm">Full Name</Label>
 								<Input
 									id="full_name"
 									value={form.full_name}
 									onChange={handleChange("full_name")}
+									className="text-xs md:text-sm"
 								/>
 							</div>
 						</div>
-						<div className="grid gap-4 md:grid-cols-2">
+						<div className="grid gap-4 grid-cols-1 md:grid-cols-2">
 							<div className="space-y-2">
-								<Label htmlFor="email">Email</Label>
+								<Label htmlFor="email" className="text-xs md:text-sm">Email</Label>
 								<Input
 									id="email"
 									type="email"
 									value={form.email}
 									onChange={handleChange("email")}
+									className="text-xs md:text-sm"
 								/>
 							</div>
 							<div className="space-y-2">
-								<Label htmlFor="phone">Phone</Label>
+								<Label htmlFor="phone" className="text-xs md:text-sm">Phone</Label>
 								<Input
 									id="phone"
 									value={form.phone}
 									onChange={handleChange("phone")}
+									className="text-xs md:text-sm"
 								/>
 							</div>
 						</div>
 						<div className="space-y-2">
-							<Label htmlFor="location">Location</Label>
+							<Label htmlFor="location" className="text-xs md:text-sm">Location</Label>
 							<Input
 								id="location"
 								value={form.location}
 								onChange={handleChange("location")}
+								className="text-xs md:text-sm"
 							/>
 						</div>
 						<div className="space-y-2">
-							<Label htmlFor="summary">Professional Summary</Label>
+							<Label htmlFor="summary" className="text-xs md:text-sm">Professional Summary</Label>
 							<Textarea
 								id="summary"
 								rows={5}
 								value={form.summary}
 								onChange={handleChange("summary")}
 								placeholder="Highlight your impact, stack, and focus areas."
+								className="text-xs md:text-sm"
 							/>
 						</div>
 					</CardContent>
@@ -256,15 +264,15 @@ function CVEditor() {
 
 			<Separator />
 
-			<div className="grid gap-4 md:grid-cols-2">
+			<div className="grid gap-4 grid-cols-1 md:grid-cols-2">
 				<Card ref={workRef}>
-					<CardHeader>
-						<CardTitle>Work Experience</CardTitle>
-						<CardDescription>
+					<CardHeader className="pb-3 md:pb-6">
+						<CardTitle className="text-lg md:text-xl">Work Experience</CardTitle>
+						<CardDescription className="text-xs md:text-sm">
 							Add roles tied to this CV (immediately saved to the API).
 						</CardDescription>
 					</CardHeader>
-					<CardContent className="text-sm text-muted-foreground space-y-3">
+					<CardContent className="text-xs md:text-sm text-muted-foreground space-y-3">
 						<WorkList
 							items={(cv.work_experiences ?? []).map((w) => ({
 								id: w.id,
@@ -282,13 +290,13 @@ function CVEditor() {
 				</Card>
 
 				<Card ref={educationRef}>
-					<CardHeader>
-						<CardTitle>Education</CardTitle>
-						<CardDescription>
+					<CardHeader className="pb-3 md:pb-6">
+						<CardTitle className="text-lg md:text-xl">Education</CardTitle>
+						<CardDescription className="text-xs md:text-sm">
 							Add degrees for this CV (saved to the API on submit).
 						</CardDescription>
 					</CardHeader>
-					<CardContent className="text-sm text-muted-foreground space-y-3">
+					<CardContent className="text-xs md:text-sm text-muted-foreground space-y-3">
 						<EducationList
 							items={(cv.educations ?? []).map((e) => ({
 								id: e.id,
@@ -304,13 +312,13 @@ function CVEditor() {
 				</Card>
 
 				<Card ref={skillsRef}>
-					<CardHeader>
-						<CardTitle>Skills</CardTitle>
-						<CardDescription>
+					<CardHeader className="pb-3 md:pb-6">
+						<CardTitle className="text-lg md:text-xl">Skills</CardTitle>
+						<CardDescription className="text-xs md:text-sm">
 							Track skills for this CV; adds/removals are sent to the API.
 						</CardDescription>
 					</CardHeader>
-					<CardContent className="text-sm text-muted-foreground space-y-3">
+					<CardContent className="text-xs md:text-sm text-muted-foreground space-y-3">
 						<SkillList
 							items={(cv.skills ?? []).map((s) => ({
 								id: s.id,
@@ -324,13 +332,13 @@ function CVEditor() {
 				</Card>
 
 				<Card ref={projectsRef}>
-					<CardHeader>
-						<CardTitle>Projects</CardTitle>
-						<CardDescription>
+					<CardHeader className="pb-3 md:pb-6">
+						<CardTitle className="text-lg md:text-xl">Projects</CardTitle>
+						<CardDescription className="text-xs md:text-sm">
 							Log projects with stack notes; actions persist via API.
 						</CardDescription>
 					</CardHeader>
-					<CardContent className="text-sm text-muted-foreground space-y-3">
+					<CardContent className="text-xs md:text-sm text-muted-foreground space-y-3">
 						<ProjectList
 							items={(cv.projects ?? []).map((p) => ({
 								id: p.id,
