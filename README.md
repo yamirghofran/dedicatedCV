@@ -496,10 +496,6 @@ See [backend/AZURE_INSIGHTS_SETUP.md](./backend/AZURE_INSIGHTS_SETUP.md) for set
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Authors
-
-Built by the DedicatedCV team
-
 ## Acknowledgments
 
 - [FastAPI](https://fastapi.tiangolo.com/) - Backend framework
