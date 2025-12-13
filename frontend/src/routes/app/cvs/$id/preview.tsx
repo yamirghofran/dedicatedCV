@@ -442,7 +442,7 @@ function CVPreviewPlaceholder() {
 									<Label htmlFor={targetLanguageId} className="mb-0">
 										Target language
 									</Label>
-									<TooltipProvider delayDuration={0}>
+									<TooltipProvider openDelay={0}>
 										<Tooltip>
 											<TooltipTrigger asChild>
 												<button
@@ -453,9 +453,7 @@ function CVPreviewPlaceholder() {
 													<HelpCircle className="h-4 w-4" />
 												</button>
 											</TooltipTrigger>
-											<TooltipContent side="top" align="start">
-												{translationSupportCopy}
-											</TooltipContent>
+											<TooltipContent>{translationSupportCopy}</TooltipContent>
 										</Tooltip>
 									</TooltipProvider>
 								</div>

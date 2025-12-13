@@ -114,6 +114,22 @@ function CVEditor() {
 		}),
 		[baseFormId],
 	);
+	const activeWork =
+		activeSheet.section === "work" && activeSheet.type === "edit"
+			? (activeSheet.data as WorkExperience | undefined)
+			: undefined;
+	const activeEducation =
+		activeSheet.section === "education" && activeSheet.type === "edit"
+			? (activeSheet.data as Education | undefined)
+			: undefined;
+	const activeSkill =
+		activeSheet.section === "skills" && activeSheet.type === "edit"
+			? (activeSheet.data as Skill | undefined)
+			: undefined;
+	const activeProject =
+		activeSheet.section === "projects" && activeSheet.type === "edit"
+			? (activeSheet.data as Project | undefined)
+			: undefined;
 
 	// Load CV data
 	useEffect(() => {
@@ -944,14 +960,13 @@ function CVEditor() {
 			>
 				{activeSheet.section === "work" && (
 					<WorkExperienceForm
-						initialData={
-							activeSheet.type === "edit" ? activeSheet.data : undefined
-						}
+						initialData={activeSheet.type === "edit" ? activeWork : undefined}
 						onSubmit={(data) => {
 							if (activeSheet.type === "edit") {
+								if (!activeWork) return;
 								workMutations.update.mutate(
 									{
-										id: activeSheet.data.id,
+										id: activeWork.id,
 										data: data,
 									},
 									{
@@ -984,13 +999,14 @@ function CVEditor() {
 				{activeSheet.section === "education" && (
 					<EducationForm
 						initialData={
-							activeSheet.type === "edit" ? activeSheet.data : undefined
+							activeSheet.type === "edit" ? activeEducation : undefined
 						}
 						onSubmit={(data) => {
 							if (activeSheet.type === "edit") {
+								if (!activeEducation) return;
 								educationMutations.update.mutate(
 									{
-										id: activeSheet.data.id,
+										id: activeEducation.id,
 										data: data,
 									},
 									{
@@ -1023,14 +1039,13 @@ function CVEditor() {
 
 				{activeSheet.section === "skills" && (
 					<SkillForm
-						initialData={
-							activeSheet.type === "edit" ? activeSheet.data : undefined
-						}
+						initialData={activeSheet.type === "edit" ? activeSkill : undefined}
 						onSubmit={(data) => {
 							if (activeSheet.type === "edit") {
+								if (!activeSkill) return;
 								skillMutations.update.mutate(
 									{
-										id: activeSheet.data.id,
+										id: activeSkill.id,
 										data: data,
 									},
 									{
@@ -1063,13 +1078,14 @@ function CVEditor() {
 				{activeSheet.section === "projects" && (
 					<ProjectForm
 						initialData={
-							activeSheet.type === "edit" ? activeSheet.data : undefined
+							activeSheet.type === "edit" ? activeProject : undefined
 						}
 						onSubmit={(data) => {
 							if (activeSheet.type === "edit") {
+								if (!activeProject) return;
 								projectMutations.update.mutate(
 									{
-										id: activeSheet.data.id,
+										id: activeProject.id,
 										data: data,
 									},
 									{

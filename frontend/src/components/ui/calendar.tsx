@@ -29,7 +29,7 @@ function CalendarRoot({ className, rootRef, ...props }: CalendarRootProps) {
 }
 
 type CalendarChevronProps = React.ComponentProps<typeof ChevronDownIcon> & {
-	orientation?: "left" | "right" | "down";
+	orientation?: "left" | "right" | "down" | "up";
 };
 
 function CalendarChevron({
