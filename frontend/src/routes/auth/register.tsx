@@ -67,7 +67,6 @@ function RegisterPage() {
 				<div>
 					<input
 						type="text"
-						id="fullName"
 						placeholder="Full Name"
 						value={fullName}
 						onChange={(e) => setFullName(e.target.value)}
@@ -77,7 +76,6 @@ function RegisterPage() {
 				<div>
 					<input
 						type="email"
-						id="email"
 						placeholder="Email"
 						value={email}
 						onChange={(e) => setEmail(e.target.value)}
@@ -93,7 +91,6 @@ function RegisterPage() {
 				<div>
 					<input
 						type="password"
-						id="password"
 						placeholder="Password"
 						value={password}
 						onChange={(e) => setPassword(e.target.value)}
@@ -108,7 +105,8 @@ function RegisterPage() {
 				</div>
 				{error && (
 					<div className="rounded-md bg-red-50 p-3 text-sm text-red-600">
-						{(error as any)?.data?.detail ||
+						{(error as { data?: { detail?: string } } | undefined)?.data
+							?.detail ||
 							error.message ||
 							"Registration failed. Please try again."}
 					</div>

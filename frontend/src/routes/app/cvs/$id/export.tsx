@@ -71,13 +71,20 @@ function CVExportPlaceholder() {
 		}
 
 		const html2canvasModule = await import("html2canvas");
+		const html2canvas = html2canvasModule.default ?? html2canvasModule;
 		const jsPDFModule = await import("jspdf");
-		const html2canvas = (html2canvasModule as any).default ?? html2canvasModule;
 		const JsPDFCtor =
-			(jsPDFModule as any).jsPDF ??
-			(jsPDFModule as any).default?.jsPDF ??
-			(jsPDFModule as any).default ??
-			jsPDFModule;
+			jsPDFModule.jsPDF ??
+			(jsPDFModule.default &&
+			typeof jsPDFModule.default === "object" &&
+			"jsPDF" in jsPDFModule.default
+				? (jsPDFModule.default as { jsPDF?: typeof jsPDFModule.jsPDF }).jsPDF
+				: undefined) ??
+			(jsPDFModule.default as typeof jsPDFModule.jsPDF | undefined);
+
+		if (!JsPDFCtor) {
+			throw new Error("Unable to load jsPDF");
+		}
 
 		const canvas = await html2canvas(previewRef.current, {
 			// Aggressive scale for crisp, larger PDF text
@@ -215,13 +222,22 @@ function CVExportPlaceholder() {
 					<p className="text-xs md:text-sm text-muted-foreground uppercase tracking-wide">
 						Export
 					</p>
-					<h1 className="text-2xl md:text-3xl font-bold truncate">Export {cv.title}</h1>
+					<h1 className="text-2xl md:text-3xl font-bold truncate">
+						Export {cv.title}
+					</h1>
 					<p className="text-xs md:text-sm text-muted-foreground mt-1">
 						Format selection and template picker will be wired here.
 					</p>
 				</div>
-				<Link to="/app/cvs/$id/preview" params={{ id }} className="w-full sm:w-auto">
-					<Button variant="outline" className="gap-2 w-full sm:w-auto text-xs md:text-sm">
+				<Link
+					to="/app/cvs/$id/preview"
+					params={{ id }}
+					className="w-full sm:w-auto"
+				>
+					<Button
+						variant="outline"
+						className="gap-2 w-full sm:w-auto text-xs md:text-sm"
+					>
 						<ArrowLeft className="h-4 w-4" />
 						<span className="hidden sm:inline">Back to preview</span>
 						<span className="sm:hidden">Back</span>

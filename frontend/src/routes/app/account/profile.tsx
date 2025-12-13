@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,6 +22,9 @@ function AccountProfilePage() {
 	const { data: user, isLoading } = useCurrentUser();
 	const uploadMutation = useUploadProfilePicture();
 	const [uploadError, setUploadError] = useState<string | null>(null);
+	const avatarInputId = useId();
+	const fullNameId = useId();
+	const emailId = useId();
 
 	if (isLoading || !user) {
 		return (
@@ -62,7 +65,7 @@ function AccountProfilePage() {
 						</Avatar>
 						<div className="space-y-2">
 							<input
-								id="avatarUpload"
+								id={avatarInputId}
 								type="file"
 								accept="image/png,image/jpeg"
 								className="hidden"
@@ -79,7 +82,7 @@ function AccountProfilePage() {
 							/>
 							<Button
 								variant="outline"
-								onClick={() => document.getElementById("avatarUpload")?.click()}
+								onClick={() => document.getElementById(avatarInputId)?.click()}
 								disabled={uploadMutation.isPending}
 							>
 								{uploadMutation.isPending ? "Uploading…" : "Change photo"}
@@ -91,12 +94,12 @@ function AccountProfilePage() {
 					</div>
 					<div className="grid gap-4">
 						<div className="space-y-2">
-							<Label htmlFor="fullName">Full name</Label>
-							<Input id="fullName" value={user.full_name || ""} disabled />
+							<Label htmlFor={fullNameId}>Full name</Label>
+							<Input id={fullNameId} value={user.full_name || ""} disabled />
 						</div>
 						<div className="space-y-2">
-							<Label htmlFor="email">Email</Label>
-							<Input id="email" type="email" value={user.email} disabled />
+							<Label htmlFor={emailId}>Email</Label>
+							<Input id={emailId} type="email" value={user.email} disabled />
 						</div>
 					</div>
 					<Button disabled>Save changes</Button>

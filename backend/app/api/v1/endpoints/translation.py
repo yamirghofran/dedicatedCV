@@ -22,7 +22,7 @@ def translate_cv_endpoint(
     """
     Translate a CV between languages.
 
-    - input_language/output_language: ISO-like language codes (en, es)
+    - input_language/output_language: ISO-like codes (en, es, de, fr, it)
     - cv: CV payload (full or partial) to translate
     """
     if request.cv.user_id and request.cv.user_id != current_user.id:
@@ -32,8 +32,6 @@ def translate_cv_endpoint(
         )
 
     service = get_translation_service()
-
-    logger.info("Got trans service")
 
     try:
         translated = service.translate_cv(

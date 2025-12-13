@@ -80,9 +80,15 @@ function CVListPage() {
 			<CardContent>
 				<div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
 					<Link to="/app/cvs/new" className="flex-1">
-						<Button className="w-full text-xs md:text-sm">Create from scratch</Button>
+						<Button className="w-full text-xs md:text-sm">
+							Create from scratch
+						</Button>
 					</Link>
-					<Button variant="outline" disabled className="flex-1 text-xs md:text-sm">
+					<Button
+						variant="outline"
+						disabled
+						className="flex-1 text-xs md:text-sm"
+					>
 						Browse templates (coming soon)
 					</Button>
 				</div>
@@ -108,7 +114,9 @@ function CVListPage() {
 				</Link>
 			</div>
 
-			{message && <p className="text-xs md:text-sm text-muted-foreground">{message}</p>}
+			{message && (
+				<p className="text-xs md:text-sm text-muted-foreground">{message}</p>
+			)}
 
 			{isLoading ? (
 				<div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
@@ -141,7 +149,9 @@ function CVListPage() {
 											<FileText className="h-4 w-4 md:h-5 md:w-5 text-primary" />
 										</div>
 										<div className="flex-1 min-w-0">
-											<CardTitle className="truncate text-base">{cv.title}</CardTitle>
+											<CardTitle className="truncate text-base">
+												{cv.title}
+											</CardTitle>
 											<CardDescription className="truncate text-xs md:text-sm">
 												{cv.full_name}
 											</CardDescription>
@@ -149,7 +159,11 @@ function CVListPage() {
 									</div>
 									<DropdownMenu>
 										<DropdownMenuTrigger asChild>
-											<Button variant="ghost" size="sm" className="h-8 w-8 p-0 flex-shrink-0">
+											<Button
+												variant="ghost"
+												size="sm"
+												className="h-8 w-8 p-0 flex-shrink-0"
+											>
 												<MoreVertical className="h-4 w-4" />
 											</Button>
 										</DropdownMenuTrigger>
@@ -207,7 +221,10 @@ function CVListPage() {
 									params={{ id: cv.id.toString() }}
 									className="flex-1"
 								>
-									<Button variant="outline" className="w-full text-xs md:text-sm">
+									<Button
+										variant="outline"
+										className="w-full text-xs md:text-sm"
+									>
 										Edit
 									</Button>
 								</Link>
@@ -216,7 +233,10 @@ function CVListPage() {
 									params={{ id: cv.id.toString() }}
 									className="flex-1"
 								>
-									<Button variant="outline" className="w-full text-xs md:text-sm">
+									<Button
+										variant="outline"
+										className="w-full text-xs md:text-sm"
+									>
 										Preview
 									</Button>
 								</Link>

@@ -162,7 +162,10 @@ function RootComponent() {
 
 	const breadcrumbs = (() => {
 		const crumbs: Array<{ label: string; to: string; isLast?: boolean }> = [];
-		const cvTitleFromState = (routerState.location.state as any)?.cvTitle;
+		const state = routerState.location.state as
+			| { cvTitle?: string }
+			| undefined;
+		const cvTitleFromState = state?.cvTitle;
 
 		routerState.matches
 			?.filter((match) => match.routeId !== "__root__")

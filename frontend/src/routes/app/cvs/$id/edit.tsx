@@ -9,7 +9,7 @@ import {
 	Sparkles,
 	Trash,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { EducationForm } from "@/components/cv/education-form";
 import { ProjectForm } from "@/components/cv/project-form";
 import { SkillForm } from "@/components/cv/skill-form";
@@ -38,6 +38,12 @@ import {
 	useSkillMutations,
 	useWorkExperienceMutations,
 } from "@/hooks/use-cv-sections";
+import type {
+	Education,
+	Project,
+	Skill,
+	WorkExperience,
+} from "@/lib/api/types";
 import { useCV, useUpdateCV } from "@/hooks/use-cvs";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -81,7 +87,7 @@ function CVEditor() {
 	const [activeSheet, setActiveSheet] = useState<{
 		type: "add" | "edit" | "ai";
 		section: SectionType | null;
-		data?: any;
+		data?: WorkExperience | Education | Skill | Project;
 	}>({ type: "add", section: null });
 
 	// AI optimization state
@@ -96,6 +102,34 @@ function CVEditor() {
 		original: string;
 		generated: string;
 	}>({ original: "", generated: "" });
+	const baseFormId = useId();
+	const formFieldIds = useMemo(
+		() => ({
+			title: `${baseFormId}-title`,
+			fullName: `${baseFormId}-full-name`,
+			email: `${baseFormId}-email`,
+			phone: `${baseFormId}-phone`,
+			location: `${baseFormId}-location`,
+			summary: `${baseFormId}-summary`,
+		}),
+		[baseFormId],
+	);
+	const activeWork =
+		activeSheet.section === "work" && activeSheet.type === "edit"
+			? (activeSheet.data as WorkExperience | undefined)
+			: undefined;
+	const activeEducation =
+		activeSheet.section === "education" && activeSheet.type === "edit"
+			? (activeSheet.data as Education | undefined)
+			: undefined;
+	const activeSkill =
+		activeSheet.section === "skills" && activeSheet.type === "edit"
+			? (activeSheet.data as Skill | undefined)
+			: undefined;
+	const activeProject =
+		activeSheet.section === "projects" && activeSheet.type === "edit"
+			? (activeSheet.data as Project | undefined)
+			: undefined;
 
 	// Load CV data
 	useEffect(() => {
@@ -156,7 +190,7 @@ function CVEditor() {
 		);
 	};
 
-	const handleOptimizeWorkExperience = (item: any) => {
+	const handleOptimizeWorkExperience = (item: WorkExperience) => {
 		const startDate = item.start_date ? new Date(item.start_date) : null;
 		const endDate = item.end_date ? new Date(item.end_date) : new Date();
 		const years =
@@ -387,17 +421,17 @@ function CVEditor() {
 				<CardContent className="space-y-4">
 					<div className="grid gap-4 sm:grid-cols-2">
 						<div className="space-y-2">
-							<Label htmlFor="title">CV Title</Label>
+							<Label htmlFor={formFieldIds.title}>CV Title</Label>
 							<Input
-								id="title"
+								id={formFieldIds.title}
 								value={form.title}
 								onChange={handleChange("title")}
 							/>
 						</div>
 						<div className="space-y-2">
-							<Label htmlFor="full_name">Full Name</Label>
+							<Label htmlFor={formFieldIds.fullName}>Full Name</Label>
 							<Input
-								id="full_name"
+								id={formFieldIds.fullName}
 								value={form.full_name}
 								onChange={handleChange("full_name")}
 							/>
@@ -405,34 +439,34 @@ function CVEditor() {
 					</div>
 					<div className="grid gap-4 sm:grid-cols-2">
 						<div className="space-y-2">
-							<Label htmlFor="email">Email</Label>
+							<Label htmlFor={formFieldIds.email}>Email</Label>
 							<Input
-								id="email"
+								id={formFieldIds.email}
 								type="email"
 								value={form.email}
 								onChange={handleChange("email")}
 							/>
 						</div>
 						<div className="space-y-2">
-							<Label htmlFor="phone">Phone</Label>
+							<Label htmlFor={formFieldIds.phone}>Phone</Label>
 							<Input
-								id="phone"
+								id={formFieldIds.phone}
 								value={form.phone}
 								onChange={handleChange("phone")}
 							/>
 						</div>
 					</div>
 					<div className="space-y-2">
-						<Label htmlFor="location">Location</Label>
+						<Label htmlFor={formFieldIds.location}>Location</Label>
 						<Input
-							id="location"
+							id={formFieldIds.location}
 							value={form.location}
 							onChange={handleChange("location")}
 						/>
 					</div>
 					<div className="space-y-2">
 						<div className="flex items-center justify-between gap-2">
-							<Label htmlFor="summary">Professional Summary</Label>
+							<Label htmlFor={formFieldIds.summary}>Professional Summary</Label>
 							<Button
 								type="button"
 								variant="outline"
@@ -446,7 +480,7 @@ function CVEditor() {
 							</Button>
 						</div>
 						<Textarea
-							id="summary"
+							id={formFieldIds.summary}
 							rows={5}
 							value={form.summary}
 							onChange={handleChange("summary")}
@@ -926,14 +960,13 @@ function CVEditor() {
 			>
 				{activeSheet.section === "work" && (
 					<WorkExperienceForm
-						initialData={
-							activeSheet.type === "edit" ? activeSheet.data : undefined
-						}
+						initialData={activeSheet.type === "edit" ? activeWork : undefined}
 						onSubmit={(data) => {
 							if (activeSheet.type === "edit") {
+								if (!activeWork) return;
 								workMutations.update.mutate(
 									{
-										id: activeSheet.data.id,
+										id: activeWork.id,
 										data: data,
 									},
 									{
@@ -966,13 +999,14 @@ function CVEditor() {
 				{activeSheet.section === "education" && (
 					<EducationForm
 						initialData={
-							activeSheet.type === "edit" ? activeSheet.data : undefined
+							activeSheet.type === "edit" ? activeEducation : undefined
 						}
 						onSubmit={(data) => {
 							if (activeSheet.type === "edit") {
+								if (!activeEducation) return;
 								educationMutations.update.mutate(
 									{
-										id: activeSheet.data.id,
+										id: activeEducation.id,
 										data: data,
 									},
 									{
@@ -1005,14 +1039,13 @@ function CVEditor() {
 
 				{activeSheet.section === "skills" && (
 					<SkillForm
-						initialData={
-							activeSheet.type === "edit" ? activeSheet.data : undefined
-						}
+						initialData={activeSheet.type === "edit" ? activeSkill : undefined}
 						onSubmit={(data) => {
 							if (activeSheet.type === "edit") {
+								if (!activeSkill) return;
 								skillMutations.update.mutate(
 									{
-										id: activeSheet.data.id,
+										id: activeSkill.id,
 										data: data,
 									},
 									{
@@ -1045,13 +1078,14 @@ function CVEditor() {
 				{activeSheet.section === "projects" && (
 					<ProjectForm
 						initialData={
-							activeSheet.type === "edit" ? activeSheet.data : undefined
+							activeSheet.type === "edit" ? activeProject : undefined
 						}
 						onSubmit={(data) => {
 							if (activeSheet.type === "edit") {
+								if (!activeProject) return;
 								projectMutations.update.mutate(
 									{
-										id: activeSheet.data.id,
+										id: activeProject.id,
 										data: data,
 									},
 									{

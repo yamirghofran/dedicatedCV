@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, ArrowRight, Sparkles } from "lucide-react";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,6 +44,15 @@ function NewCVPage() {
 		original: string;
 		generated: string;
 	}>({ original: "", generated: "" });
+	const formId = useId();
+	const formIds = {
+		title: `${formId}-title`,
+		fullName: `${formId}-fullName`,
+		email: `${formId}-email`,
+		phone: `${formId}-phone`,
+		location: `${formId}-location`,
+		summary: `${formId}-summary`,
+	};
 
 	const { mutate: createCV, isPending } = useCreateCV();
 	const generateSummaryPreview = useGenerateSummaryPreview();
@@ -197,11 +206,11 @@ function NewCVPage() {
 					{step === 1 && (
 						<div className="space-y-4">
 							<div className="space-y-2">
-								<Label htmlFor="title">
+								<Label htmlFor={formIds.title}>
 									CV Title <span className="text-destructive">*</span>
 								</Label>
 								<Input
-									id="title"
+									id={formIds.title}
 									placeholder="e.g., Software Engineer Resume"
 									value={title}
 									onChange={(e) => setTitle(e.target.value)}
@@ -216,11 +225,11 @@ function NewCVPage() {
 							</div>
 
 							<div className="space-y-2">
-								<Label htmlFor="fullName">
+								<Label htmlFor={formIds.fullName}>
 									Full Name <span className="text-destructive">*</span>
 								</Label>
 								<Input
-									id="fullName"
+									id={formIds.fullName}
 									placeholder="John Doe"
 									value={fullName}
 									onChange={(e) => setFullName(e.target.value)}
@@ -232,11 +241,11 @@ function NewCVPage() {
 							</div>
 
 							<div className="space-y-2">
-								<Label htmlFor="email">
+								<Label htmlFor={formIds.email}>
 									Email <span className="text-destructive">*</span>
 								</Label>
 								<Input
-									id="email"
+									id={formIds.email}
 									type="email"
 									placeholder="you@example.com"
 									value={email}
@@ -250,9 +259,9 @@ function NewCVPage() {
 
 							<div className="grid grid-cols-2 gap-4">
 								<div className="space-y-2">
-									<Label htmlFor="phone">Phone</Label>
+									<Label htmlFor={formIds.phone}>Phone</Label>
 									<Input
-										id="phone"
+										id={formIds.phone}
 										type="tel"
 										placeholder="+1-555-0000"
 										value={phone}
@@ -261,9 +270,9 @@ function NewCVPage() {
 								</div>
 
 								<div className="space-y-2">
-									<Label htmlFor="location">Location</Label>
+									<Label htmlFor={formIds.location}>Location</Label>
 									<Input
-										id="location"
+										id={formIds.location}
 										placeholder="San Francisco, CA"
 										value={location}
 										onChange={(e) => setLocation(e.target.value)}
@@ -277,7 +286,7 @@ function NewCVPage() {
 						<div className="space-y-4">
 							<div className="space-y-2">
 								<div className="flex items-center justify-between gap-2">
-									<Label htmlFor="summary">Professional Summary</Label>
+									<Label htmlFor={formIds.summary}>Professional Summary</Label>
 									<Button
 										type="button"
 										variant="outline"
@@ -291,7 +300,7 @@ function NewCVPage() {
 									</Button>
 								</div>
 								<Textarea
-									id="summary"
+									id={formIds.summary}
 									placeholder="Experienced software engineer with 5+ years building scalable web applications..."
 									value={summary}
 									onChange={(e) => setSummary(e.target.value)}
