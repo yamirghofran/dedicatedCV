@@ -183,7 +183,7 @@ function CVListPage() {
 												disabled={isDuplicating}
 												className="cursor-pointer"
 											>
-												<Copy className="h-4 w-4 mr-2" />
+												<Copy className="h-4 w-4 " />
 												Duplicate
 											</DropdownMenuItem>
 											<DropdownMenuItem>
@@ -198,9 +198,9 @@ function CVListPage() {
 											</DropdownMenuItem>
 											<DropdownMenuItem
 												onClick={() => handleDelete(cv.id, cv.title)}
-												className="text-destructive cursor-pointer"
+												className="text-destructive cursor-pointer color-destructive hover:color-destructive-hover"
 											>
-												<Trash2 className="h-4 w-4 mr-2" />
+												<Trash2 className="h-4 w-4 color-destructive hover:color-destructive-hover" />
 												Delete
 											</DropdownMenuItem>
 										</DropdownMenuContent>
