@@ -276,7 +276,7 @@ function TooltipOverlay() {
 			refs.setReference(referenceElRef.current);
 			update();
 		}
-	}, [referenceElRef, refs, update, rendered.data]);
+	}, [referenceElRef, refs, update]);
 
 	const ready = x != null && y != null;
 	const Component = rendered.data?.contentAsChild ? Slot : motion.div;
@@ -420,7 +420,7 @@ function TooltipContent({ asChild = false, ...props }: TooltipContentProps) {
 			lastPropsRef.current = props;
 			setProps(props);
 		}
-	}, [props, setProps]);
+	});
 
 	React.useEffect(() => {
 		setAsChild(asChild);

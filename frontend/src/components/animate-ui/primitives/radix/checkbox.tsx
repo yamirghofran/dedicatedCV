@@ -79,6 +79,7 @@ function CheckboxIndicator(props: CheckboxIndicatorProps) {
 				aria-label="Checkbox indicator"
 				{...props}
 			>
+				<title>Checkbox indicator</title>
 				{isChecked === "indeterminate" ? (
 					<motion.line
 						x1="5"

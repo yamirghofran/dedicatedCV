@@ -71,13 +71,20 @@ function CVExportPlaceholder() {
 		}
 
 		const html2canvasModule = await import("html2canvas");
+		const html2canvas = html2canvasModule.default ?? html2canvasModule;
 		const jsPDFModule = await import("jspdf");
-		const html2canvas = (html2canvasModule as any).default ?? html2canvasModule;
 		const JsPDFCtor =
-			(jsPDFModule as any).jsPDF ??
-			(jsPDFModule as any).default?.jsPDF ??
-			(jsPDFModule as any).default ??
-			jsPDFModule;
+			jsPDFModule.jsPDF ??
+			(jsPDFModule.default &&
+			typeof jsPDFModule.default === "object" &&
+			"jsPDF" in jsPDFModule.default
+				? (jsPDFModule.default as { jsPDF?: typeof jsPDFModule.jsPDF }).jsPDF
+				: undefined) ??
+			(jsPDFModule.default as typeof jsPDFModule.jsPDF | undefined);
+
+		if (!JsPDFCtor) {
+			throw new Error("Unable to load jsPDF");
+		}
 
 		const canvas = await html2canvas(previewRef.current, {
 			// Aggressive scale for crisp, larger PDF text

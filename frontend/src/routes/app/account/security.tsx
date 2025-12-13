@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useId } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -16,6 +17,9 @@ export const Route = createFileRoute("/app/account/security")({
 });
 
 function AccountSecurityPage() {
+	const currentPasswordId = useId();
+	const newPasswordId = useId();
+
 	return (
 		<div className="max-w-2xl space-y-6">
 			<div>
@@ -34,18 +38,18 @@ function AccountSecurityPage() {
 				</CardHeader>
 				<CardContent className="space-y-4">
 					<div className="space-y-2">
-						<Label htmlFor="currentPassword">Current password</Label>
+						<Label htmlFor={currentPasswordId}>Current password</Label>
 						<Input
-							id="currentPassword"
+							id={currentPasswordId}
 							type="password"
 							placeholder="••••••"
 							disabled
 						/>
 					</div>
 					<div className="space-y-2">
-						<Label htmlFor="newPassword">New password</Label>
+						<Label htmlFor={newPasswordId}>New password</Label>
 						<Input
-							id="newPassword"
+							id={newPasswordId}
 							type="password"
 							placeholder="••••••"
 							disabled

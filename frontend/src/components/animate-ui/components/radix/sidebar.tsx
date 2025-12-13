@@ -68,29 +68,42 @@ function SidebarProvider({
 	const isMobile = useIsMobile();
 	const [openMobile, setOpenMobile] = React.useState(false);
 
+	const persistOpenState = React.useCallback((openState: boolean) => {
+		if ("cookieStore" in window && "set" in window.cookieStore) {
+			void window.cookieStore.set({
+				name: SIDEBAR_COOKIE_NAME,
+				value: String(openState),
+				path: "/",
+				expires: Date.now() + SIDEBAR_COOKIE_MAX_AGE * 1000,
+			});
+			return;
+		}
+		// biome-ignore lint/suspicious/noDocumentCookie: Fallback for browsers without Cookie Store API
+		document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
+	}, []);
+
 	// This is the internal state of the sidebar.
 	// We use openProp and setOpenProp for control from outside the component.
 	const [_open, _setOpen] = React.useState(defaultOpen);
 	const open = openProp ?? _open;
 	const setOpen = React.useCallback(
 		(value: boolean | ((value: boolean) => boolean)) => {
-			const openState = typeof value === "function" ? value(open) : value;
-			if (setOpenProp) {
-				setOpenProp(openState);
-			} else {
-				_setOpen(openState);
-			}
-
-			// This sets the cookie to keep the sidebar state.
-			document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
+			_setOpen((prev) => {
+				const next = typeof value === "function" ? value(prev) : value;
+				if (setOpenProp) {
+					setOpenProp(next);
+				}
+				persistOpenState(next);
+				return next;
+			});
 		},
-		[setOpenProp, open],
+		[persistOpenState, setOpenProp],
 	);
 
 	// Helper to toggle the sidebar.
 	const toggleSidebar = React.useCallback(() => {
 		return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open);
-	}, [isMobile, setOpen, setOpenMobile]);
+	}, [isMobile, setOpen]);
 
 	// Adds a keyboard shortcut to toggle the sidebar.
 	React.useEffect(() => {
@@ -119,10 +132,9 @@ function SidebarProvider({
 			setOpen,
 			isMobile,
 			openMobile,
-			setOpenMobile,
 			toggleSidebar,
 		}),
-		[state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar],
+		[state, open, setOpen, isMobile, openMobile, toggleSidebar],
 	);
 
 	return (

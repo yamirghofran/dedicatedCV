@@ -9,7 +9,7 @@ import {
 	Sparkles,
 	Trash,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { EducationForm } from "@/components/cv/education-form";
 import { ProjectForm } from "@/components/cv/project-form";
 import { SkillForm } from "@/components/cv/skill-form";
@@ -38,6 +38,12 @@ import {
 	useSkillMutations,
 	useWorkExperienceMutations,
 } from "@/hooks/use-cv-sections";
+import type {
+	Education,
+	Project,
+	Skill,
+	WorkExperience,
+} from "@/lib/api/types";
 import { useCV, useUpdateCV } from "@/hooks/use-cvs";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -81,7 +87,7 @@ function CVEditor() {
 	const [activeSheet, setActiveSheet] = useState<{
 		type: "add" | "edit" | "ai";
 		section: SectionType | null;
-		data?: any;
+		data?: WorkExperience | Education | Skill | Project;
 	}>({ type: "add", section: null });
 
 	// AI optimization state
@@ -96,6 +102,18 @@ function CVEditor() {
 		original: string;
 		generated: string;
 	}>({ original: "", generated: "" });
+	const baseFormId = useId();
+	const formFieldIds = useMemo(
+		() => ({
+			title: `${baseFormId}-title`,
+			fullName: `${baseFormId}-full-name`,
+			email: `${baseFormId}-email`,
+			phone: `${baseFormId}-phone`,
+			location: `${baseFormId}-location`,
+			summary: `${baseFormId}-summary`,
+		}),
+		[baseFormId],
+	);
 
 	// Load CV data
 	useEffect(() => {
@@ -156,7 +174,7 @@ function CVEditor() {
 		);
 	};
 
-	const handleOptimizeWorkExperience = (item: any) => {
+	const handleOptimizeWorkExperience = (item: WorkExperience) => {
 		const startDate = item.start_date ? new Date(item.start_date) : null;
 		const endDate = item.end_date ? new Date(item.end_date) : new Date();
 		const years =
@@ -387,17 +405,17 @@ function CVEditor() {
 				<CardContent className="space-y-4">
 					<div className="grid gap-4 sm:grid-cols-2">
 						<div className="space-y-2">
-							<Label htmlFor="title">CV Title</Label>
+							<Label htmlFor={formFieldIds.title}>CV Title</Label>
 							<Input
-								id="title"
+								id={formFieldIds.title}
 								value={form.title}
 								onChange={handleChange("title")}
 							/>
 						</div>
 						<div className="space-y-2">
-							<Label htmlFor="full_name">Full Name</Label>
+							<Label htmlFor={formFieldIds.fullName}>Full Name</Label>
 							<Input
-								id="full_name"
+								id={formFieldIds.fullName}
 								value={form.full_name}
 								onChange={handleChange("full_name")}
 							/>
@@ -405,34 +423,34 @@ function CVEditor() {
 					</div>
 					<div className="grid gap-4 sm:grid-cols-2">
 						<div className="space-y-2">
-							<Label htmlFor="email">Email</Label>
+							<Label htmlFor={formFieldIds.email}>Email</Label>
 							<Input
-								id="email"
+								id={formFieldIds.email}
 								type="email"
 								value={form.email}
 								onChange={handleChange("email")}
 							/>
 						</div>
 						<div className="space-y-2">
-							<Label htmlFor="phone">Phone</Label>
+							<Label htmlFor={formFieldIds.phone}>Phone</Label>
 							<Input
-								id="phone"
+								id={formFieldIds.phone}
 								value={form.phone}
 								onChange={handleChange("phone")}
 							/>
 						</div>
 					</div>
 					<div className="space-y-2">
-						<Label htmlFor="location">Location</Label>
+						<Label htmlFor={formFieldIds.location}>Location</Label>
 						<Input
-							id="location"
+							id={formFieldIds.location}
 							value={form.location}
 							onChange={handleChange("location")}
 						/>
 					</div>
 					<div className="space-y-2">
 						<div className="flex items-center justify-between gap-2">
-							<Label htmlFor="summary">Professional Summary</Label>
+							<Label htmlFor={formFieldIds.summary}>Professional Summary</Label>
 							<Button
 								type="button"
 								variant="outline"
@@ -446,7 +464,7 @@ function CVEditor() {
 							</Button>
 						</div>
 						<Textarea
-							id="summary"
+							id={formFieldIds.summary}
 							rows={5}
 							value={form.summary}
 							onChange={handleChange("summary")}

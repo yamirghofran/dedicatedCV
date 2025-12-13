@@ -6,7 +6,7 @@ import {
 	Languages,
 	Sparkles,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import {
 	ToggleGroup,
 	ToggleGroupItem,
@@ -40,6 +40,53 @@ import {
 	TooltipTrigger,
 } from "@/components/animate-ui/components/animate/tooltip";
 import { ClassicTemplate, MinimalTemplate, ModernTemplate } from "@/templates";
+
+const scoreColor = (score: number) => {
+	if (score <= 3) return "#ef4444"; // red
+	if (score <= 7) return "#f97316"; // orange
+	return "#22c55e"; // green
+};
+
+function CircleScore({ score }: { score: number }) {
+	const radius = 25;
+	const circumference = 2 * Math.PI * radius;
+	const offset = circumference - (score / 10) * circumference;
+	const color = scoreColor(score);
+	return (
+		<div className="relative h-14 w-14">
+			<svg
+				viewBox="0 0 60 60"
+				className="h-full w-full"
+				role="img"
+				aria-label={`Score ${score}/10`}
+			>
+				<circle
+					cx="30"
+					cy="30"
+					r={radius}
+					fill="none"
+					stroke="#e5e7eb"
+					strokeWidth="6"
+				/>
+				<circle
+					cx="30"
+					cy="30"
+					r={radius}
+					fill="none"
+					stroke={color}
+					strokeWidth="6"
+					strokeDasharray={circumference}
+					strokeDashoffset={offset}
+					strokeLinecap="round"
+					transform="rotate(-90 30 30)"
+				/>
+			</svg>
+			<div className="absolute inset-0 flex items-center justify-center text-sm font-semibold">
+				{score}/10
+			</div>
+		</div>
+	);
+}
 
 export const Route = createFileRoute("/app/cvs/$id/preview")({
 	component: CVPreviewPlaceholder,
@@ -82,7 +129,7 @@ function CVPreviewPlaceholder() {
 		try {
 			const parsed = JSON.parse(raw);
 			return parsed;
-		} catch (e) {
+		} catch (_e) {
 			return null;
 		}
 	}, [scoreMutation.data?.raw]);
@@ -119,53 +166,6 @@ function CVPreviewPlaceholder() {
 		).filter((m) => m.value);
 	}, [parsedRawScores, scoreMutation.data]);
 
-	const scoreColor = (score: number) => {
-		if (score <= 3) return "#ef4444"; // red
-		if (score <= 7) return "#f97316"; // orange
-		return "#22c55e"; // green
-	};
-
-	const CircleScore = ({ score }: { score: number }) => {
-		const radius = 25;
-		const circumference = 2 * Math.PI * radius;
-		const offset = circumference - (score / 10) * circumference;
-		const color = scoreColor(score);
-		return (
-			<div className="relative h-14 w-14">
-				<svg
-					viewBox="0 0 60 60"
-					className="h-full w-full"
-					role="img"
-					aria-label={`Score ${score}/10`}
-				>
-					<circle
-						cx="30"
-						cy="30"
-						r={radius}
-						fill="none"
-						stroke="#e5e7eb"
-						strokeWidth="6"
-					/>
-					<circle
-						cx="30"
-						cy="30"
-						r={radius}
-						fill="none"
-						stroke={color}
-						strokeWidth="6"
-						strokeDasharray={circumference}
-						strokeDashoffset={offset}
-						strokeLinecap="round"
-						transform="rotate(-90 30 30)"
-					/>
-				</svg>
-				<div className="absolute inset-0 flex items-center justify-center text-sm font-semibold">
-					{score}/10
-				</div>
-			</div>
-		);
-	};
-
 	useEffect(() => {
 		const stored = localStorage.getItem(`cv_template_${cvId}`);
 		if (stored === "modern" || stored === "minimal" || stored === "classic") {
@@ -189,6 +189,8 @@ function CVPreviewPlaceholder() {
 	}, [selectedTemplate]);
 
 	const isSameLanguage = sourceLanguage === targetLanguage;
+	const sourceLanguageId = useId();
+	const targetLanguageId = useId();
 
 	const handleOpenAiSheet = () => {
 		setSheetMode("ai");
@@ -389,11 +391,11 @@ function CVPreviewPlaceholder() {
 													key={label}
 													className="flex items-start gap-3 rounded-md bg-white/70 p-3"
 												>
-													<CircleScore score={value!.score} />
+													<CircleScore score={value?.score ?? 0} />
 													<div className="flex-1">
 														<p className="font-medium">{label}</p>
 														<p className="text-sm text-muted-foreground">
-															{value!.reason}
+															{value?.reason ?? ""}
 														</p>
 													</div>
 												</div>
@@ -418,12 +420,12 @@ function CVPreviewPlaceholder() {
 					<div className="space-y-4">
 						<div className="grid gap-3 sm:grid-cols-2">
 							<div className="space-y-2">
-								<Label htmlFor="source-language">Current language</Label>
+								<Label htmlFor={sourceLanguageId}>Current language</Label>
 								<Select
 									value={sourceLanguage}
 									onValueChange={(value) => setSourceLanguage(value)}
 								>
-									<SelectTrigger id="source-language" className="w-full">
+									<SelectTrigger id={sourceLanguageId} className="w-full">
 										<SelectValue placeholder="Select language" />
 									</SelectTrigger>
 									<SelectContent>
@@ -437,7 +439,7 @@ function CVPreviewPlaceholder() {
 							</div>
 							<div className="space-y-2">
 								<div className="flex items-center gap-2">
-									<Label htmlFor="target-language" className="mb-0">
+									<Label htmlFor={targetLanguageId} className="mb-0">
 										Target language
 									</Label>
 									<TooltipProvider delayDuration={0}>
@@ -463,7 +465,7 @@ function CVPreviewPlaceholder() {
 										setTargetLanguage(value);
 									}}
 								>
-									<SelectTrigger id="target-language" className="w-full">
+									<SelectTrigger id={targetLanguageId} className="w-full">
 										<SelectValue placeholder="Select target language" />
 									</SelectTrigger>
 									<SelectContent>

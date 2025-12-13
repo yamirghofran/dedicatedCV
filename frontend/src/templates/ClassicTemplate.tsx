@@ -33,8 +33,8 @@ function renderBullets(text?: string | null) {
 	if (!bullets.length) return null;
 	return (
 		<ul style={bulletListStyle}>
-			{bullets.map((b, i) => (
-				<li key={i} style={bulletItemStyle}>
+			{bullets.map((b) => (
+				<li key={b} style={bulletItemStyle}>
 					{b}
 				</li>
 			))}
@@ -140,7 +140,10 @@ export function ClassicTemplate({ cv }: Props) {
 						{cv.projects.map((p) => (
 							<div key={p.id}>
 								<div style={{ ...textSm, fontWeight: 600 }}>
-									{p.name || (p as any).title}
+									{p.name ||
+										("title" in p && typeof p.title === "string"
+											? p.title
+											: "Project")}
 								</div>
 								{p.technologies && <div style={textXs}>{p.technologies}</div>}
 								{renderBullets(p.description)}
