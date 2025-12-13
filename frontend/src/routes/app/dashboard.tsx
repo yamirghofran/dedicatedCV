@@ -81,137 +81,135 @@ function DashboardPage() {
 		</div>
 	);
 }
-				</div>
+// 			<div>
 
-				{isLoading ? (
-					<div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-						{[1, 2, 3].map((i) => (
-							<Card key={i} className="animate-pulse">
-								<CardHeader className="space-y-2">
-									<div className="h-6 bg-muted rounded" />
-									<div className="h-4 bg-muted rounded w-2/3" />
-								</CardHeader>
-								<CardContent>
-									<div className="h-20 bg-muted rounded" />
-								</CardContent>
-							</Card>
-						))}
-					</div>
-				) : cvs && cvs.length > 0 ? (
-					<div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-						{cvs.map((cv) => (
-							<Card key={cv.id} className="transition-none flex flex-col">
-								<CardHeader className="pb-3">
-									<div className="flex items-start justify-between gap-2">
-										<div className="flex items-start gap-2 flex-1 min-w-0">
-											<div className="p-2 bg-primary/10 rounded-lg flex-shrink-0">
-												<FileText className="h-4 w-4 md:h-5 md:w-5 text-primary" />
-											</div>
-											<div className="flex-1 min-w-0">
-												<CardTitle className="truncate text-base">{cv.title}</CardTitle>
-												<CardDescription className="truncate text-xs md:text-sm">
-													{cv.full_name}
-												</CardDescription>
-											</div>
-										</div>
-										<DropdownMenu>
-											<DropdownMenuTrigger asChild>
-												<Button
-													variant="ghost"
-													size="sm"
-													className="h-8 w-8 p-0 flex-shrink-0"
-												>
-													<MoreVertical className="h-4 w-4" />
-												</Button>
-											</DropdownMenuTrigger>
-											<DropdownMenuContent align="end">
-												<DropdownMenuItem>
-													<Link
-														to="/app/cvs/$id/preview"
-														params={{ id: cv.id.toString() }}
-														className="cursor-pointer flex items-center gap-2"
-													>
-														<Eye className="h-4 w-4" />
-														Preview
-													</Link>
-												</DropdownMenuItem>
-												<DropdownMenuItem
-													onClick={() => handleDuplicate(cv)}
-													disabled={isDuplicating}
-													className="cursor-pointer"
-												>
-													<Copy className="h-4 w-4 " />
-													Duplicate
-												</DropdownMenuItem>
-												<DropdownMenuItem>
-													<Link
-														to="/app/cvs/$id/edit"
-														params={{ id: cv.id.toString() }}
-														className="cursor-pointer flex items-center gap-2"
-													>
-														<Pencil className="h-4 w-4" />
-														Edit
-													</Link>
-												</DropdownMenuItem>
-												<DropdownMenuItem
-													onClick={() => handleDelete(cv.id, cv.title)}
-													className="text-destructive cursor-pointer hover:!text-destructive"
-												>
-													<Trash2 className="h-4 w-4 text-destructive " />
-													Delete
-												</DropdownMenuItem>
-											</DropdownMenuContent>
-										</DropdownMenu>
-									</div>
-								</CardHeader>
-								<CardContent className="pb-3 flex-1">
-									<div className="space-y-1 text-xs md:text-sm text-muted-foreground">
-										<p className="truncate">{cv.email}</p>
-										{cv.summary && (
-											<p className="line-clamp-2 text-xs">{cv.summary}</p>
-										)}
-									</div>
-								</CardContent>
-								<CardFooter className="flex gap-2 pt-0">
-									<Link
-										to="/app/cvs/$id/edit"
-										params={{ id: cv.id.toString() }}
-										className="flex-1"
-									>
-										<Button variant="outline" className="w-full text-xs md:text-sm">
-											Edit
-										</Button>
-									</Link>
-									<Link
-										to="/app/cvs/$id/preview"
-										params={{ id: cv.id.toString() }}
-										className="flex-1"
-									>
-										<Button variant="outline" className="w-full text-xs md:text-sm">
-											Preview
-										</Button>
-									</Link>
-								</CardFooter>
-							</Card>
-						))}
-					</div>
-				) : (
-					emptyState
-				)}
-			</div>
-=======
-			{/* Stats Cards */}
-			<StatsCards
-				totalCVs={stats?.total_cvs ?? 0}
-				templatesUsed={stats?.templates_used ?? 0}
-				avgCompletion={stats?.avg_completion_rate ?? 0}
-				lastActivity={stats?.last_activity ?? new Date().toISOString()}
-				isLoading={isLoading}
-			/>
+// 				{isLoading ? (
+// 					<div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+// 						{[1, 2, 3].map((i) => (
+// 							<Card key={i} className="animate-pulse">
+// 								<CardHeader className="space-y-2">
+// 									<div className="h-6 bg-muted rounded" />
+// 									<div className="h-4 bg-muted rounded w-2/3" />
+// 								</CardHeader>
+// 								<CardContent>
+// 									<div className="h-20 bg-muted rounded" />
+// 								</CardContent>
+// 							</Card>
+// 						))}
+// 					</div>
+// 				) : cvs && cvs.length > 0 ? (
+// 					<div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+// 						{cvs.map((cv) => (
+// 							<Card key={cv.id} className="transition-none flex flex-col">
+// 								<CardHeader className="pb-3">
+// 									<div className="flex items-start justify-between gap-2">
+// 										<div className="flex items-start gap-2 flex-1 min-w-0">
+// 											<div className="p-2 bg-primary/10 rounded-lg flex-shrink-0">
+// 												<FileText className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+// 											</div>
+// 											<div className="flex-1 min-w-0">
+// 												<CardTitle className="truncate text-base">{cv.title}</CardTitle>
+// 												<CardDescription className="truncate text-xs md:text-sm">
+// 													{cv.full_name}
+// 												</CardDescription>
+// 											</div>
+// 										</div>
+// 										<DropdownMenu>
+// 											<DropdownMenuTrigger asChild>
+// 												<Button
+// 													variant="ghost"
+// 													size="sm"
+// 													className="h-8 w-8 p-0 flex-shrink-0"
+// 												>
+// 													<MoreVertical className="h-4 w-4" />
+// 												</Button>
+// 											</DropdownMenuTrigger>
+// 											<DropdownMenuContent align="end">
+// 												<DropdownMenuItem>
+// 													<Link
+// 														to="/app/cvs/$id/preview"
+// 														params={{ id: cv.id.toString() }}
+// 														className="cursor-pointer flex items-center gap-2"
+// 													>
+// 														<Eye className="h-4 w-4" />
+// 														Preview
+// 													</Link>
+// 												</DropdownMenuItem>
+// 												<DropdownMenuItem
+// 													onClick={() => handleDuplicate(cv)}
+// 													disabled={isDuplicating}
+// 													className="cursor-pointer"
+// 												>
+// 													<Copy className="h-4 w-4 " />
+// 													Duplicate
+// 												</DropdownMenuItem>
+// 												<DropdownMenuItem>
+// 													<Link
+// 														to="/app/cvs/$id/edit"
+// 														params={{ id: cv.id.toString() }}
+// 														className="cursor-pointer flex items-center gap-2"
+// 													>
+// 														<Pencil className="h-4 w-4" />
+// 														Edit
+// 													</Link>
+// 												</DropdownMenuItem>
+// 												<DropdownMenuItem
+// 													onClick={() => handleDelete(cv.id, cv.title)}
+// 													className="text-destructive cursor-pointer hover:!text-destructive"
+// 												>
+// 													<Trash2 className="h-4 w-4 text-destructive " />
+// 													Delete
+// 												</DropdownMenuItem>
+// 											</DropdownMenuContent>
+// 										</DropdownMenu>
+// 									</div>
+// 								</CardHeader>
+// 								<CardContent className="pb-3 flex-1">
+// 									<div className="space-y-1 text-xs md:text-sm text-muted-foreground">
+// 										<p className="truncate">{cv.email}</p>
+// 										{cv.summary && (
+// 											<p className="line-clamp-2 text-xs">{cv.summary}</p>
+// 										)}
+// 									</div>
+// 								</CardContent>
+// 								<CardFooter className="flex gap-2 pt-0">
+// 									<Link
+// 										to="/app/cvs/$id/edit"
+// 										params={{ id: cv.id.toString() }}
+// 										className="flex-1"
+// 									>
+// 										<Button variant="outline" className="w-full text-xs md:text-sm">
+// 											Edit
+// 										</Button>
+// 									</Link>
+// 									<Link
+// 										to="/app/cvs/$id/preview"
+// 										params={{ id: cv.id.toString() }}
+// 										className="flex-1"
+// 									>
+// 										<Button variant="outline" className="w-full text-xs md:text-sm">
+// 											Preview
+// 										</Button>
+// 									</Link>
+// 								</CardFooter>
+// 							</Card>
+// 						))}
+// 					</div>
+// 				) : (
+// 					emptyState
+// 				)}
+// 			</div>
+// 			{/* Stats Cards */}
+// 			<StatsCards
+// 				totalCVs={stats?.total_cvs ?? 0}
+// 				templatesUsed={stats?.templates_used ?? 0}
+// 				avgCompletion={stats?.avg_completion_rate ?? 0}
+// 				lastActivity={stats?.last_activity ?? new Date().toISOString()}
+// 				isLoading={isLoading}
+// 			/>
 
-			{/* Recent CVs */}
-			<RecentCVs cvs={stats?.recent_cvs ?? []} isLoading={isLoading} />
->>>>>>> origin/main
-		</div>
-	);
-}
+// 			{/* Recent CVs */}
+// 			<RecentCVs cvs={stats?.recent_cvs ?? []} isLoading={isLoading} />
+// 		</div>
+// 	);
+// }

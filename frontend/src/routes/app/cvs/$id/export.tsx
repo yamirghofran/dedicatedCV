@@ -222,13 +222,22 @@ function CVExportPlaceholder() {
 					<p className="text-xs md:text-sm text-muted-foreground uppercase tracking-wide">
 						Export
 					</p>
-					<h1 className="text-2xl md:text-3xl font-bold truncate">Export {cv.title}</h1>
+					<h1 className="text-2xl md:text-3xl font-bold truncate">
+						Export {cv.title}
+					</h1>
 					<p className="text-xs md:text-sm text-muted-foreground mt-1">
 						Format selection and template picker will be wired here.
 					</p>
 				</div>
-				<Link to="/app/cvs/$id/preview" params={{ id }} className="w-full sm:w-auto">
-					<Button variant="outline" className="gap-2 w-full sm:w-auto text-xs md:text-sm">
+				<Link
+					to="/app/cvs/$id/preview"
+					params={{ id }}
+					className="w-full sm:w-auto"
+				>
+					<Button
+						variant="outline"
+						className="gap-2 w-full sm:w-auto text-xs md:text-sm"
+					>
 						<ArrowLeft className="h-4 w-4" />
 						<span className="hidden sm:inline">Back to preview</span>
 						<span className="sm:hidden">Back</span>
