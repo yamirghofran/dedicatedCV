@@ -300,8 +300,8 @@ function CVPreviewPlaceholder() {
 
 			<Card style={{ maxWidth: "80vw" }}>
 				<CardHeader>
-					<CardTitle>Preview</CardTitle>
-					<CardDescription>
+					<CardTitle className="text-base md:text-lg">Preview</CardTitle>
+					<CardDescription className="text-xs md:text-sm">
 						A4 ratio preview; scroll if content overflows.
 					</CardDescription>
 				</CardHeader>
