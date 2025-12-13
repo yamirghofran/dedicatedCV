@@ -1,6 +1,20 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Download, Eye } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+	ChevronDown,
+	ChevronRight,
+	Download,
+	Edit,
+	Eye,
+	Plus,
+	Sparkles,
+	Trash,
+} from "lucide-react";
+import { useEffect, useId, useMemo, useState } from "react";
+import { EducationForm } from "@/components/cv/education-form";
+import { ProjectForm } from "@/components/cv/project-form";
+import { SkillForm } from "@/components/cv/skill-form";
+import { WorkExperienceForm } from "@/components/cv/work-experience-form";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -9,39 +23,51 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { DatePicker } from "@/components/ui/date-picker";
+import { FloatingActionButton } from "@/components/ui/floating-action-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
+import {
+	useGenerateSummaryPreview,
+	useOptimizeDescription,
+} from "@/hooks/use-ai-optimization";
 import {
 	useEducationMutations,
 	useProjectMutations,
 	useSkillMutations,
 	useWorkExperienceMutations,
 } from "@/hooks/use-cv-sections";
+import type {
+	Education,
+	Project,
+	Skill,
+	WorkExperience,
+} from "@/lib/api/types";
 import { useCV, useUpdateCV } from "@/hooks/use-cvs";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const Route = createFileRoute("/app/cvs/$id/edit")({
 	component: CVEditor,
 });
+
+type SectionType = "work" | "education" | "skills" | "projects";
 
 function CVEditor() {
 	const { id } = Route.useParams();
 	const cvId = Number(id);
 	const { data: cv, isLoading } = useCV(cvId);
 	const { mutate: updateCV, isPending: isSaving } = useUpdateCV();
+	const isMobile = useIsMobile();
+
 	const workMutations = useWorkExperienceMutations(cvId);
 	const educationMutations = useEducationMutations(cvId);
 	const skillMutations = useSkillMutations(cvId);
 	const projectMutations = useProjectMutations(cvId);
-	const personalRef = useRef<HTMLDivElement | null>(null);
-	const workRef = useRef<HTMLDivElement | null>(null);
-	const educationRef = useRef<HTMLDivElement | null>(null);
-	const skillsRef = useRef<HTMLDivElement | null>(null);
-	const projectsRef = useRef<HTMLDivElement | null>(null);
+	const optimizeMutation = useOptimizeDescription();
+	const generateSummaryPreview = useGenerateSummaryPreview();
 
+	// Personal info form state
 	const [form, setForm] = useState({
 		title: "",
 		full_name: "",
@@ -50,11 +76,62 @@ function CVEditor() {
 		location: "",
 		summary: "",
 	});
+
+	// UI state
 	const [autoSaveStatus, setAutoSaveStatus] = useState<
 		"idle" | "saving" | "saved"
 	>("idle");
-	const [sectionsHint, setSectionsHint] = useState<string[] | null>(null);
+	const [expandedSection, setExpandedSection] = useState<SectionType | null>(
+		null,
+	);
+	const [activeSheet, setActiveSheet] = useState<{
+		type: "add" | "edit" | "ai";
+		section: SectionType | null;
+		data?: WorkExperience | Education | Skill | Project;
+	}>({ type: "add", section: null });
 
+	// AI optimization state
+	const [aiOptimization, setAiOptimization] = useState<{
+		original: string;
+		optimized: string;
+		itemId: number;
+		section: SectionType;
+	} | null>(null);
+	const [summarySheetOpen, setSummarySheetOpen] = useState(false);
+	const [summaryAi, setSummaryAi] = useState<{
+		original: string;
+		generated: string;
+	}>({ original: "", generated: "" });
+	const baseFormId = useId();
+	const formFieldIds = useMemo(
+		() => ({
+			title: `${baseFormId}-title`,
+			fullName: `${baseFormId}-full-name`,
+			email: `${baseFormId}-email`,
+			phone: `${baseFormId}-phone`,
+			location: `${baseFormId}-location`,
+			summary: `${baseFormId}-summary`,
+		}),
+		[baseFormId],
+	);
+	const activeWork =
+		activeSheet.section === "work" && activeSheet.type === "edit"
+			? (activeSheet.data as WorkExperience | undefined)
+			: undefined;
+	const activeEducation =
+		activeSheet.section === "education" && activeSheet.type === "edit"
+			? (activeSheet.data as Education | undefined)
+			: undefined;
+	const activeSkill =
+		activeSheet.section === "skills" && activeSheet.type === "edit"
+			? (activeSheet.data as Skill | undefined)
+			: undefined;
+	const activeProject =
+		activeSheet.section === "projects" && activeSheet.type === "edit"
+			? (activeSheet.data as Project | undefined)
+			: undefined;
+
+	// Load CV data
 	useEffect(() => {
 		if (cv) {
 			setForm({
@@ -65,19 +142,6 @@ function CVEditor() {
 				location: cv.location ?? "",
 				summary: cv.summary ?? "",
 			});
-		}
-	}, [cv]);
-
-	useEffect(() => {
-		if (cv) {
-			const stored = localStorage.getItem(`cv_sections_${cv.id}`);
-			if (stored) {
-				try {
-					setSectionsHint(JSON.parse(stored));
-				} catch {
-					setSectionsHint(null);
-				}
-			}
 		}
 	}, [cv]);
 
@@ -126,11 +190,142 @@ function CVEditor() {
 		);
 	};
 
+	const handleOptimizeWorkExperience = (item: WorkExperience) => {
+		const startDate = item.start_date ? new Date(item.start_date) : null;
+		const endDate = item.end_date ? new Date(item.end_date) : new Date();
+		const years =
+			startDate && endDate
+				? Math.round(
+						((endDate.getTime() - startDate.getTime()) /
+							(1000 * 60 * 60 * 24 * 365)) *
+							10,
+					) / 10
+				: 0;
+		const duration = years > 0 ? `${years} years` : "Less than 1 year";
+
+		setAiOptimization({
+			original: item.description || "",
+			optimized: "",
+			itemId: item.id,
+			section: "work",
+		});
+
+		optimizeMutation.mutate(
+			{
+				original_text: item.description || "No description provided",
+				field_type: "work_experience",
+				context: {
+					position: item.position,
+					company: item.company,
+					duration,
+				},
+			},
+			{
+				onSuccess: (data) => {
+					setAiOptimization((prev) =>
+						prev ? { ...prev, optimized: data.optimized } : null,
+					);
+				},
+			},
+		);
+	};
+
+	const handleApplyAiOptimization = () => {
+		if (!aiOptimization || !cv) return;
+
+		const item = cv.work_experiences?.find(
+			(w) => w.id === aiOptimization.itemId,
+		);
+		if (!item) return;
+
+		workMutations.update.mutate(
+			{
+				id: item.id,
+				data: {
+					company: item.company,
+					position: item.position,
+					location: item.location || undefined,
+					start_date: item.start_date || undefined,
+					end_date: item.end_date || undefined,
+					description: aiOptimization.optimized,
+				},
+			},
+			{
+				onSuccess: () => {
+					setAiOptimization(null);
+				},
+			},
+		);
+	};
+
+	const handleRegenerateAi = () => {
+		if (!aiOptimization || !cv) return;
+
+		const item = cv.work_experiences?.find(
+			(w) => w.id === aiOptimization.itemId,
+		);
+		if (!item) return;
+
+		handleOptimizeWorkExperience(item);
+	};
+
+	const buildSummaryPreviewPayload = () => ({
+		cv_data: {
+			general: {
+				title: form.title,
+				full_name: form.full_name,
+				email: form.email,
+				location: form.location,
+				summary: form.summary,
+			},
+			work_experiences: cv?.work_experiences?.map((exp) => ({
+				position: exp.position,
+				company: exp.company,
+				description: exp.description,
+			})),
+			educations: cv?.educations?.map((edu) => ({
+				degree: edu.degree,
+				institution: edu.institution,
+				field_of_study: edu.field_of_study,
+			})),
+			skills: cv?.skills?.map((skill) => ({ name: skill.name })),
+		},
+		tone: "professional" as const,
+	});
+
+	const handleOpenSummaryAi = () => {
+		setSummaryAi({
+			original: form.summary || "No summary provided.",
+			generated: "",
+		});
+		setSummarySheetOpen(true);
+		generateSummaryPreview.mutate(buildSummaryPreviewPayload(), {
+			onSuccess: (data) => {
+				setSummaryAi((prev) => ({ ...prev, generated: data.summary }));
+			},
+		});
+	};
+
+	const handleApplySummaryAi = () => {
+		if (summaryAi.generated) {
+			setForm((prev) => ({ ...prev, summary: summaryAi.generated }));
+		}
+		setSummarySheetOpen(false);
+	};
+
+	const handleRegenerateSummaryAi = () => {
+		generateSummaryPreview.mutate(buildSummaryPreviewPayload(), {
+			onSuccess: (data) => {
+				setSummaryAi((prev) => ({ ...prev, generated: data.summary }));
+			},
+		});
+	};
+
 	if (isLoading || !cv) {
 		return (
 			<div className="space-y-4">
 				<Skeleton className="h-10 w-64" />
-				<div className="grid gap-4 md:grid-cols-3">
+				<div className="grid gap-4">
 					{[1, 2, 3].map((i) => (
 						<Skeleton key={i} className="h-48 w-full" />
 					))}
@@ -139,46 +334,75 @@ function CVEditor() {
 		);
 	}
 
+	const sections = [
+		{
+			id: "work" as const,
+			title: "Work Experience",
+			description: "Add your professional experience",
+			count: cv.work_experiences?.length || 0,
+			items: cv.work_experiences || [],
+		},
+		{
+			id: "education" as const,
+			title: "Education",
+			description: "Add your educational background",
+			count: cv.educations?.length || 0,
+			items: cv.educations || [],
+		},
+		{
+			id: "skills" as const,
+			title: "Skills",
+			description: "List your technical and soft skills",
+			count: cv.skills?.length || 0,
+			items: cv.skills || [],
+		},
+		{
+			id: "projects" as const,
+			title: "Projects",
+			description: "Showcase your key projects",
+			count: cv.projects?.length || 0,
+			items: cv.projects || [],
+		},
+	];
+
 	return (
-		<div className="space-y-6">
-			<div className="flex items-center justify-between">
-				<div>
+		<div className="space-y-6 pb-24">
+			{/* Header */}
+			<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+				<div className="min-w-0 flex-1">
 					<p className="text-sm text-muted-foreground uppercase tracking-wide">
 						CV Editor
 					</p>
-					<h1 className="text-3xl font-bold">{cv.title}</h1>
-					<p className="text-muted-foreground mt-1">
-						Edit your base information and then add experiences, education,
-						skills, and projects.
+					<h1 className="text-2xl sm:text-3xl font-bold truncate">
+						{cv.title}
+					</h1>
+					<p className="text-muted-foreground mt-1 text-sm">
+						Edit your information and manage your CV sections
 					</p>
-					{sectionsHint && sectionsHint.length > 0 && (
-						<p className="text-xs text-muted-foreground mt-2">
-							You chose to start with: {sectionsHint.join(", ")}.
-						</p>
-					)}
 				</div>
-				<div className="flex gap-2">
+				<div className="flex gap-2 flex-wrap sm:flex-nowrap">
 					<Link to="/app/cvs/$id/preview" params={{ id: cv.id.toString() }}>
-						<Button variant="outline" className="gap-2">
+						<Button variant="outline" size="sm" className="gap-2">
 							<Eye className="h-4 w-4" />
-							Preview
+							{!isMobile && "Preview"}
 						</Button>
 					</Link>
 					<Link to="/app/cvs/$id/export" params={{ id: cv.id.toString() }}>
-						<Button variant="outline" className="gap-2">
+						<Button variant="outline" size="sm" className="gap-2">
 							<Download className="h-4 w-4" />
-							Export
+							{!isMobile && "Export"}
 						</Button>
 					</Link>
 					<Button
 						onClick={handleSave}
 						disabled={!isDirty || isSaving}
+						size="sm"
 						className="gap-2"
 					>
 						{isSaving || autoSaveStatus === "saving"
 							? "Saving…"
 							: isDirty
-								? "Save changes"
+								? "Save"
 								: autoSaveStatus === "saved"
 									? "Saved"
 									: "Saved"}
@@ -186,519 +410,874 @@ function CVEditor() {
 				</div>
 			</div>
 
-			<div className="grid ">
-				<Card className="md:col-span-2" ref={personalRef}>
-					<CardHeader>
-						<CardTitle>Personal & Summary</CardTitle>
-						<CardDescription>
-							Save updates to persist to the backend.
-						</CardDescription>
-					</CardHeader>
-					<CardContent className="space-y-4">
-						<div className="grid gap-4 md:grid-cols-2">
-							<div className="space-y-2">
-								<Label htmlFor="title">CV Title</Label>
-								<Input
-									id="title"
-									value={form.title}
-									onChange={handleChange("title")}
-								/>
-							</div>
-							<div className="space-y-2">
-								<Label htmlFor="full_name">Full Name</Label>
-								<Input
-									id="full_name"
-									value={form.full_name}
-									onChange={handleChange("full_name")}
-								/>
-							</div>
-						</div>
-						<div className="grid gap-4 md:grid-cols-2">
-							<div className="space-y-2">
-								<Label htmlFor="email">Email</Label>
-								<Input
-									id="email"
-									type="email"
-									value={form.email}
-									onChange={handleChange("email")}
-								/>
-							</div>
-							<div className="space-y-2">
-								<Label htmlFor="phone">Phone</Label>
-								<Input
-									id="phone"
-									value={form.phone}
-									onChange={handleChange("phone")}
-								/>
-							</div>
-						</div>
+			{/* Personal Information */}
+			<Card>
+				<CardHeader>
+					<CardTitle>Personal Information</CardTitle>
+					<CardDescription>
+						Update your personal details and professional summary
+					</CardDescription>
+				</CardHeader>
+				<CardContent className="space-y-4">
+					<div className="grid gap-4 sm:grid-cols-2">
 						<div className="space-y-2">
-							<Label htmlFor="location">Location</Label>
+							<Label htmlFor={formFieldIds.title}>CV Title</Label>
 							<Input
-								id="location"
-								value={form.location}
-								onChange={handleChange("location")}
+								id={formFieldIds.title}
+								value={form.title}
+								onChange={handleChange("title")}
 							/>
 						</div>
 						<div className="space-y-2">
-							<Label htmlFor="summary">Professional Summary</Label>
-							<Textarea
-								id="summary"
-								rows={5}
-								value={form.summary}
-								onChange={handleChange("summary")}
-								placeholder="Highlight your impact, stack, and focus areas."
+							<Label htmlFor={formFieldIds.fullName}>Full Name</Label>
+							<Input
+								id={formFieldIds.fullName}
+								value={form.full_name}
+								onChange={handleChange("full_name")}
 							/>
 						</div>
-					</CardContent>
-				</Card>
-			</div>
-
-			<Separator />
-
-			<div className="grid gap-4 md:grid-cols-2">
-				<Card ref={workRef}>
-					<CardHeader>
-						<CardTitle>Work Experience</CardTitle>
-						<CardDescription>
-							Add roles tied to this CV (immediately saved to the API).
-						</CardDescription>
-					</CardHeader>
-					<CardContent className="text-sm text-muted-foreground space-y-3">
-						<WorkList
-							items={(cv.work_experiences ?? []).map((w) => ({
-								id: w.id,
-								company: w.company,
-								position: w.position,
-								location: w.location,
-								start_date: w.start_date,
-								end_date: w.end_date,
-								description: w.description,
-							}))}
-							cvId={cv.id}
-							mutations={workMutations}
+					</div>
+					<div className="grid gap-4 sm:grid-cols-2">
+						<div className="space-y-2">
+							<Label htmlFor={formFieldIds.email}>Email</Label>
+							<Input
+								id={formFieldIds.email}
+								type="email"
+								value={form.email}
+								onChange={handleChange("email")}
+							/>
+						</div>
+						<div className="space-y-2">
+							<Label htmlFor={formFieldIds.phone}>Phone</Label>
+							<Input
+								id={formFieldIds.phone}
+								value={form.phone}
+								onChange={handleChange("phone")}
+							/>
+						</div>
+					</div>
+					<div className="space-y-2">
+						<Label htmlFor={formFieldIds.location}>Location</Label>
+						<Input
+							id={formFieldIds.location}
+							value={form.location}
+							onChange={handleChange("location")}
 						/>
-					</CardContent>
-				</Card>
-
-				<Card ref={educationRef}>
-					<CardHeader>
-						<CardTitle>Education</CardTitle>
-						<CardDescription>
-							Add degrees for this CV (saved to the API on submit).
-						</CardDescription>
-					</CardHeader>
-					<CardContent className="text-sm text-muted-foreground space-y-3">
-						<EducationList
-							items={(cv.educations ?? []).map((e) => ({
-								id: e.id,
-								institution: e.institution,
-								degree: e.degree,
-								start_date: e.start_date,
-								end_date: e.end_date,
-							}))}
-							cvId={cv.id}
-							mutations={educationMutations}
-						/>
-					</CardContent>
-				</Card>
-
-				<Card ref={skillsRef}>
-					<CardHeader>
-						<CardTitle>Skills</CardTitle>
-						<CardDescription>
-							Track skills for this CV; adds/removals are sent to the API.
-						</CardDescription>
-					</CardHeader>
-					<CardContent className="text-sm text-muted-foreground space-y-3">
-						<SkillList
-							items={(cv.skills ?? []).map((s) => ({
-								id: s.id,
-								name: s.name,
-								category: s.category,
-							}))}
-							cvId={cv.id}
-							mutations={skillMutations}
-						/>
-					</CardContent>
-				</Card>
-
-				<Card ref={projectsRef}>
-					<CardHeader>
-						<CardTitle>Projects</CardTitle>
-						<CardDescription>
-							Log projects with stack notes; actions persist via API.
-						</CardDescription>
-					</CardHeader>
-					<CardContent className="text-sm text-muted-foreground space-y-3">
-						<ProjectList
-							items={(cv.projects ?? []).map((p) => ({
-								id: p.id,
-								name: p.name,
-								stack: p.technologies ?? p.description ?? "",
-							}))}
-							cvId={cv.id}
-							mutations={projectMutations}
-						/>
-					</CardContent>
-				</Card>
-			</div>
-		</div>
-	);
-}
-
-function WorkList({
-	items,
-	cvId,
-	mutations,
-}: {
-	items: Array<{
-		id: number;
-		company: string;
-		position: string;
-		location?: string | null;
-		start_date?: string | null;
-		end_date?: string | null;
-		description?: string | null;
-	}>;
-	cvId: number;
-	mutations: ReturnType<typeof useWorkExperienceMutations>;
-}) {
-	const [draft, setDraft] = useState({
-		company: "",
-		position: "",
-		location: "",
-		start_date: "",
-		end_date: "",
-		description: "",
-	});
-
-	return (
-		<div className="space-y-2">
-			{items.length === 0 && (
-				<p className="text-muted-foreground">No experiences yet.</p>
-			)}
-			<div className="space-y-1">
-				<Label className="text-xs">Company</Label>
-				<Input
-					value={draft.company}
-					onChange={(e) => setDraft({ ...draft, company: e.target.value })}
-				/>
-				<Label className="text-xs">Role</Label>
-				<Input
-					value={draft.position}
-					onChange={(e) => setDraft({ ...draft, position: e.target.value })}
-				/>
-				<Label className="text-xs">Location</Label>
-				<Input
-					value={draft.location}
-					onChange={(e) => setDraft({ ...draft, location: e.target.value })}
-				/>
-				<div className="grid grid-cols-2 gap-2">
-					<DatePicker
-						label="Start date"
-						value={draft.start_date}
-						onChange={(value) => setDraft({ ...draft, start_date: value })}
-					/>
-					<DatePicker
-						label="End date"
-						value={draft.end_date}
-						onChange={(value) => setDraft({ ...draft, end_date: value })}
-					/>
-				</div>
-				<Label className="text-xs">Description</Label>
-				<Input
-					value={draft.description}
-					onChange={(e) => setDraft({ ...draft, description: e.target.value })}
-					placeholder="What did you deliver?"
-				/>
-				<Button
-					size="sm"
-					className="mt-2"
-					onClick={() => {
-						if (!draft.company || !draft.position || !draft.start_date) return;
-						mutations.create.mutate({
-							cv_id: cvId,
-							company: draft.company,
-							position: draft.position,
-							location: draft.location || undefined,
-							start_date: draft.start_date,
-							end_date: draft.end_date || undefined,
-							description: draft.description || undefined,
-						});
-						setDraft({
-							company: "",
-							position: "",
-							location: "",
-							start_date: "",
-							end_date: "",
-							description: "",
-						});
-					}}
-					disabled={mutations.create.isPending}
-				>
-					Add experience
-				</Button>
-			</div>
-			{items.length > 0 && (
-				<div className="space-y-2">
-					{items.map((item) => (
-						<div
-							key={item.id}
-							className="rounded-lg border px-3 py-2 flex items-center justify-between"
-						>
-							<div>
-								<div className="font-medium text-foreground">
-									{item.position}
-								</div>
-								<div className="text-xs text-muted-foreground">
-									{item.company} · {item.start_date} -{" "}
-									{item.end_date || "Present"}
-								</div>
-							</div>
+					</div>
+					<div className="space-y-2">
+						<div className="flex items-center justify-between gap-2">
+							<Label htmlFor={formFieldIds.summary}>Professional Summary</Label>
 							<Button
+								type="button"
+								variant="outline"
 								size="sm"
-								variant="ghost"
-								onClick={() => mutations.remove.mutate(item.id)}
-								disabled={mutations.remove.isPending}
+								className="gap-2"
+								onClick={handleOpenSummaryAi}
+								disabled={generateSummaryPreview.isPending}
 							>
-								Delete
+								<Sparkles className="h-4 w-4" />
+								Generate with AI
 							</Button>
 						</div>
-					))}
-				</div>
-			)}
-		</div>
-	);
-}
+						<Textarea
+							id={formFieldIds.summary}
+							rows={5}
+							value={form.summary}
+							onChange={handleChange("summary")}
+							placeholder="Highlight your impact, stack, and focus areas."
+						/>
+					</div>
+				</CardContent>
+			</Card>
 
-function EducationList({
-	items,
-	cvId,
-	mutations,
-}: {
-	items: Array<{
-		id: number;
-		institution: string;
-		degree: string;
-		start_date?: string | null;
-		end_date?: string | null;
-	}>;
-	cvId: number;
-	mutations: ReturnType<typeof useEducationMutations>;
-}) {
-	const [draft, setDraft] = useState({
-		institution: "",
-		degree: "",
-		start_date: "",
-		end_date: "",
-	});
+			{/* CV Sections - Mobile: Collapsible, Desktop: Cards */}
+			<div className="space-y-3">
+				{sections.map((section) => (
+					<div key={section.id}>
+						{/* Mobile: Collapsible Section */}
+						{isMobile ? (
+							<Card className="overflow-hidden">
+								<button
+									type="button"
+									onClick={() =>
+										setExpandedSection(
+											expandedSection === section.id ? null : section.id,
+										)
+									}
+									className="w-full text-left"
+								>
+									<CardHeader className="flex-row items-center justify-between py-4">
+										<div className="flex-1">
+											<CardTitle className="text-base flex items-center gap-2">
+												{section.title}
+												{section.count > 0 && (
+													<span className="text-xs font-normal text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
+														{section.count}
+													</span>
+												)}
+											</CardTitle>
+										</div>
+										{expandedSection === section.id ? (
+											<ChevronDown className="h-5 w-5 text-muted-foreground" />
+										) : (
+											<ChevronRight className="h-5 w-5 text-muted-foreground" />
+										)}
+									</CardHeader>
+								</button>
 
-	return (
-		<div className="space-y-2">
-			{items.length === 0 && (
-				<p className="text-muted-foreground">No education entries yet.</p>
+								{expandedSection === section.id && (
+									<CardContent className="pt-0 pb-4 space-y-3">
+										{section.items.length === 0 ? (
+											<div className="text-center py-8">
+												<p className="text-sm text-muted-foreground mb-4">
+													No {section.title.toLowerCase()} added yet
+												</p>
+												<Button
+													size="sm"
+													onClick={() =>
+														setActiveSheet({ type: "add", section: section.id })
+													}
+												>
+													<Plus className="h-4 w-4 mr-2" />
+													Add {section.title}
+												</Button>
+											</div>
+										) : (
+											<>
+												{section.id === "work" &&
+													cv.work_experiences?.map((item) => (
+														<div
+															key={item.id}
+															className="rounded-lg border p-3 space-y-2"
+														>
+															<div className="flex items-start justify-between gap-2">
+																<div className="flex-1 min-w-0">
+																	<div className="font-medium text-sm">
+																		{item.position}
+																	</div>
+																	<div className="text-xs text-muted-foreground">
+																		{item.company}
+																	</div>
+																	<div className="text-xs text-muted-foreground">
+																		{item.start_date} -{" "}
+																		{item.end_date || "Present"}
+																	</div>
+																</div>
+																<div className="flex gap-1 shrink-0">
+																	<Button
+																		size="icon-sm"
+																		variant="ghost"
+																		onClick={() =>
+																			setActiveSheet({
+																				type: "edit",
+																				section: "work",
+																				data: item,
+																			})
+																		}
+																	>
+																		<Edit className="h-4 w-4" />
+																	</Button>
+																	<Button
+																		size="icon-sm"
+																		variant="ghost"
+																		onClick={() =>
+																			handleOptimizeWorkExperience(item)
+																		}
+																		disabled={!item.description}
+																	>
+																		<Sparkles className="h-4 w-4" />
+																	</Button>
+																	<Button
+																		size="icon-sm"
+																		variant="ghost"
+																		onClick={() =>
+																			workMutations.remove.mutate(item.id)
+																		}
+																	>
+																		<Trash className="h-4 w-4 text-destructive" />
+																	</Button>
+																</div>
+															</div>
+															{item.description && (
+																<p className="text-xs text-muted-foreground line-clamp-2">
+																	{item.description}
+																</p>
+															)}
+														</div>
+													))}
+
+												{section.id === "education" &&
+													cv.educations?.map((item) => (
+														<div
+															key={item.id}
+															className="rounded-lg border p-3 space-y-2"
+														>
+															<div className="flex items-start justify-between gap-2">
+																<div className="flex-1 min-w-0">
+																	<div className="font-medium text-sm">
+																		{item.institution}
+																	</div>
+																	<div className="text-xs text-muted-foreground">
+																		{item.degree}
+																	</div>
+																	<div className="text-xs text-muted-foreground">
+																		{item.start_date} -{" "}
+																		{item.end_date || "Present"}
+																	</div>
+																</div>
+																<div className="flex gap-1 shrink-0">
+																	<Button
+																		size="icon-sm"
+																		variant="ghost"
+																		onClick={() =>
+																			setActiveSheet({
+																				type: "edit",
+																				section: "education",
+																				data: item,
+																			})
+																		}
+																	>
+																		<Edit className="h-4 w-4" />
+																	</Button>
+																	<Button
+																		size="icon-sm"
+																		variant="ghost"
+																		onClick={() =>
+																			educationMutations.remove.mutate(item.id)
+																		}
+																	>
+																		<Trash className="h-4 w-4 text-destructive" />
+																	</Button>
+																</div>
+															</div>
+														</div>
+													))}
+
+												{section.id === "skills" &&
+													cv.skills &&
+													cv.skills.length > 0 && (
+														<div className="flex flex-wrap gap-2">
+															{cv.skills.map((item) => (
+																<div
+																	key={item.id}
+																	className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm"
+																>
+																	<span>{item.name}</span>
+																	<button
+																		type="button"
+																		onClick={() =>
+																			skillMutations.remove.mutate(item.id)
+																		}
+																		className="text-muted-foreground hover:text-destructive"
+																	>
+																		×
+																	</button>
+																</div>
+															))}
+														</div>
+													)}
+
+												{section.id === "projects" &&
+													cv.projects?.map((item) => (
+														<div
+															key={item.id}
+															className="rounded-lg border p-3 space-y-2"
+														>
+															<div className="flex items-start justify-between gap-2">
+																<div className="flex-1 min-w-0">
+																	<div className="font-medium text-sm">
+																		{item.name}
+																	</div>
+																	{item.technologies && (
+																		<div className="text-xs text-muted-foreground">
+																			{item.technologies}
+																		</div>
+																	)}
+																</div>
+																<div className="flex gap-1 shrink-0">
+																	<Button
+																		size="icon-sm"
+																		variant="ghost"
+																		onClick={() =>
+																			setActiveSheet({
+																				type: "edit",
+																				section: "projects",
+																				data: item,
+																			})
+																		}
+																	>
+																		<Edit className="h-4 w-4" />
+																	</Button>
+																	<Button
+																		size="icon-sm"
+																		variant="ghost"
+																		onClick={() =>
+																			projectMutations.remove.mutate(item.id)
+																		}
+																	>
+																		<Trash className="h-4 w-4 text-destructive" />
+																	</Button>
+																</div>
+															</div>
+														</div>
+													))}
+
+												<Button
+													variant="outline"
+													size="sm"
+													className="w-full"
+													onClick={() =>
+														setActiveSheet({ type: "add", section: section.id })
+													}
+												>
+													<Plus className="h-4 w-4 mr-2" />
+													Add {section.title}
+												</Button>
+											</>
+										)}
+									</CardContent>
+								)}
+							</Card>
+						) : (
+							/* Desktop: Card Layout */
+							<Card>
+								<CardHeader>
+									<div className="flex items-center justify-between">
+										<div>
+											<CardTitle>{section.title}</CardTitle>
+											<CardDescription>{section.description}</CardDescription>
+										</div>
+										<Button
+											size="sm"
+											onClick={() =>
+												setActiveSheet({ type: "add", section: section.id })
+											}
+										>
+											<Plus className="h-4 w-4 mr-2" />
+											Add
+										</Button>
+									</div>
+								</CardHeader>
+								<CardContent>
+									{section.items.length === 0 ? (
+										<p className="text-sm text-muted-foreground text-center py-8">
+											No {section.title.toLowerCase()} added yet
+										</p>
+									) : (
+										<div className="space-y-3">
+											{section.id === "work" &&
+												cv.work_experiences?.map((item) => (
+													<div
+														key={item.id}
+														className="rounded-lg border p-4 flex items-start justify-between gap-4"
+													>
+														<div className="flex-1 min-w-0">
+															<div className="font-medium">{item.position}</div>
+															<div className="text-sm text-muted-foreground">
+																{item.company} · {item.start_date} -{" "}
+																{item.end_date || "Present"}
+															</div>
+															{item.description && (
+																<p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+																	{item.description}
+																</p>
+															)}
+														</div>
+														<div className="flex gap-2 shrink-0">
+															<Button
+																size="sm"
+																variant="ghost"
+																onClick={() =>
+																	setActiveSheet({
+																		type: "edit",
+																		section: "work",
+																		data: item,
+																	})
+																}
+															>
+																<Edit className="h-4 w-4" />
+															</Button>
+															<Button
+																size="sm"
+																variant="ghost"
+																onClick={() =>
+																	handleOptimizeWorkExperience(item)
+																}
+																disabled={!item.description}
+															>
+																<Sparkles className="h-4 w-4" />
+															</Button>
+															<Button
+																size="sm"
+																variant="ghost"
+																onClick={() =>
+																	workMutations.remove.mutate(item.id)
+																}
+															>
+																<Trash className="h-4 w-4 text-destructive" />
+															</Button>
+														</div>
+													</div>
+												))}
+
+											{section.id === "education" &&
+												cv.educations?.map((item) => (
+													<div
+														key={item.id}
+														className="rounded-lg border p-4 flex items-start justify-between gap-4"
+													>
+														<div className="flex-1 min-w-0">
+															<div className="font-medium">
+																{item.institution}
+															</div>
+															<div className="text-sm text-muted-foreground">
+																{item.degree} · {item.start_date} -{" "}
+																{item.end_date || "Present"}
+															</div>
+														</div>
+														<div className="flex gap-2 shrink-0">
+															<Button
+																size="sm"
+																variant="ghost"
+																onClick={() =>
+																	setActiveSheet({
+																		type: "edit",
+																		section: "education",
+																		data: item,
+																	})
+																}
+															>
+																<Edit className="h-4 w-4" />
+															</Button>
+															<Button
+																size="sm"
+																variant="ghost"
+																onClick={() =>
+																	educationMutations.remove.mutate(item.id)
+																}
+															>
+																<Trash className="h-4 w-4 text-destructive" />
+															</Button>
+														</div>
+													</div>
+												))}
+
+											{section.id === "skills" &&
+												cv.skills &&
+												cv.skills.length > 0 && (
+													<div className="flex flex-wrap gap-2">
+														{cv.skills.map((item) => (
+															<div
+																key={item.id}
+																className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm"
+															>
+																<span>{item.name}</span>
+																<button
+																	type="button"
+																	onClick={() =>
+																		skillMutations.remove.mutate(item.id)
+																	}
+																	className="text-muted-foreground hover:text-destructive text-base"
+																>
+																	×
+																</button>
+															</div>
+														))}
+													</div>
+												)}
+
+											{section.id === "projects" &&
+												cv.projects?.map((item) => (
+													<div
+														key={item.id}
+														className="rounded-lg border p-4 flex items-start justify-between gap-4"
+													>
+														<div className="flex-1 min-w-0">
+															<div className="font-medium">{item.name}</div>
+															{item.technologies && (
+																<div className="text-sm text-muted-foreground">
+																	{item.technologies}
+																</div>
+															)}
+														</div>
+														<div className="flex gap-2 shrink-0">
+															<Button
+																size="sm"
+																variant="ghost"
+																onClick={() =>
+																	setActiveSheet({
+																		type: "edit",
+																		section: "projects",
+																		data: item,
+																	})
+																}
+															>
+																<Edit className="h-4 w-4" />
+															</Button>
+															<Button
+																size="sm"
+																variant="ghost"
+																onClick={() =>
+																	projectMutations.remove.mutate(item.id)
+																}
+															>
+																<Trash className="h-4 w-4 text-destructive" />
+															</Button>
+														</div>
+													</div>
+												))}
+										</div>
+									)}
+								</CardContent>
+							</Card>
+						)}
+					</div>
+				))}
+			</div>
+
+			{/* FAB - Only show on mobile when a section is expanded */}
+			{isMobile && expandedSection && (
+				<FloatingActionButton
+					onClick={() =>
+						setActiveSheet({ type: "add", section: expandedSection })
+					}
+				/>
 			)}
-			<div className="space-y-1">
-				<Label className="text-xs">Institution</Label>
-				<Input
-					value={draft.institution}
-					onChange={(e) => setDraft({ ...draft, institution: e.target.value })}
-				/>
-				<Label className="text-xs">Degree</Label>
-				<Input
-					value={draft.degree}
-					onChange={(e) => setDraft({ ...draft, degree: e.target.value })}
-				/>
-				<div className="grid grid-cols-2 gap-2">
-					<DatePicker
-						label="Start date"
-						value={draft.start_date}
-						onChange={(value) => setDraft({ ...draft, start_date: value })}
+
+			{/* Add/Edit Bottom Sheet */}
+			<BottomSheet
+				open={activeSheet.section !== null && activeSheet.type !== "ai"}
+				onOpenChange={(open) => {
+					if (!open) {
+						setActiveSheet({ type: "add", section: null });
+					}
+				}}
+				title={
+					activeSheet.type === "edit"
+						? `Edit ${activeSheet.section === "work" ? "Work Experience" : activeSheet.section === "education" ? "Education" : activeSheet.section === "skills" ? "Skill" : "Project"}`
+						: `Add ${activeSheet.section === "work" ? "Work Experience" : activeSheet.section === "education" ? "Education" : activeSheet.section === "skills" ? "Skill" : "Project"}`
+				}
+			>
+				{activeSheet.section === "work" && (
+					<WorkExperienceForm
+						initialData={activeSheet.type === "edit" ? activeWork : undefined}
+						onSubmit={(data) => {
+							if (activeSheet.type === "edit") {
+								if (!activeWork) return;
+								workMutations.update.mutate(
+									{
+										id: activeWork.id,
+										data: data,
+									},
+									{
+										onSuccess: () => {
+											setActiveSheet({ type: "add", section: null });
+										},
+									},
+								);
+							} else {
+								workMutations.create.mutate(
+									{ ...data, cv_id: cvId },
+									{
+										onSuccess: () => {
+											setActiveSheet({ type: "add", section: null });
+										},
+									},
+								);
+							}
+						}}
+						onCancel={() => setActiveSheet({ type: "add", section: null })}
+						isSubmitting={
+							workMutations.create.isPending || workMutations.update.isPending
+						}
+						submitLabel={
+							activeSheet.type === "edit" ? "Save Changes" : "Add Experience"
+						}
 					/>
-					<DatePicker
-						label="End date"
-						value={draft.end_date}
-						onChange={(value) => setDraft({ ...draft, end_date: value })}
+				)}
+
+				{activeSheet.section === "education" && (
+					<EducationForm
+						initialData={
+							activeSheet.type === "edit" ? activeEducation : undefined
+						}
+						onSubmit={(data) => {
+							if (activeSheet.type === "edit") {
+								if (!activeEducation) return;
+								educationMutations.update.mutate(
+									{
+										id: activeEducation.id,
+										data: data,
+									},
+									{
+										onSuccess: () => {
+											setActiveSheet({ type: "add", section: null });
+										},
+									},
+								);
+							} else {
+								educationMutations.create.mutate(
+									{ ...data, cv_id: cvId },
+									{
+										onSuccess: () => {
+											setActiveSheet({ type: "add", section: null });
+										},
+									},
+								);
+							}
+						}}
+						onCancel={() => setActiveSheet({ type: "add", section: null })}
+						isSubmitting={
+							educationMutations.create.isPending ||
+							educationMutations.update.isPending
+						}
+						submitLabel={
+							activeSheet.type === "edit" ? "Save Changes" : "Add Education"
+						}
 					/>
-				</div>
-				<Button
-					size="sm"
-					className="mt-2"
-					onClick={() => {
-						if (!draft.institution || !draft.degree || !draft.start_date)
-							return;
-						mutations.create.mutate({
-							cv_id: cvId,
-							institution: draft.institution,
-							degree: draft.degree,
-							start_date: draft.start_date,
-							end_date: draft.end_date || undefined,
-						});
-						setDraft({
-							institution: "",
-							degree: "",
-							start_date: "",
-							end_date: "",
-						});
-					}}
-					disabled={mutations.create.isPending}
-				>
-					Add education
-				</Button>
-			</div>
-			{items.length > 0 && (
-				<div className="space-y-2">
-					{items.map((item) => (
-						<div
-							key={item.id}
-							className="rounded-lg border px-3 py-2 flex items-center justify-between"
+				)}
+
+				{activeSheet.section === "skills" && (
+					<SkillForm
+						initialData={activeSheet.type === "edit" ? activeSkill : undefined}
+						onSubmit={(data) => {
+							if (activeSheet.type === "edit") {
+								if (!activeSkill) return;
+								skillMutations.update.mutate(
+									{
+										id: activeSkill.id,
+										data: data,
+									},
+									{
+										onSuccess: () => {
+											setActiveSheet({ type: "add", section: null });
+										},
+									},
+								);
+							} else {
+								skillMutations.create.mutate(
+									{ ...data, cv_id: cvId },
+									{
+										onSuccess: () => {
+											setActiveSheet({ type: "add", section: null });
+										},
+									},
+								);
+							}
+						}}
+						onCancel={() => setActiveSheet({ type: "add", section: null })}
+						isSubmitting={
+							skillMutations.create.isPending || skillMutations.update.isPending
+						}
+						submitLabel={
+							activeSheet.type === "edit" ? "Save Changes" : "Add Skill"
+						}
+					/>
+				)}
+
+				{activeSheet.section === "projects" && (
+					<ProjectForm
+						initialData={
+							activeSheet.type === "edit" ? activeProject : undefined
+						}
+						onSubmit={(data) => {
+							if (activeSheet.type === "edit") {
+								if (!activeProject) return;
+								projectMutations.update.mutate(
+									{
+										id: activeProject.id,
+										data: data,
+									},
+									{
+										onSuccess: () => {
+											setActiveSheet({ type: "add", section: null });
+										},
+									},
+								);
+							} else {
+								projectMutations.create.mutate(
+									{ ...data, cv_id: cvId },
+									{
+										onSuccess: () => {
+											setActiveSheet({ type: "add", section: null });
+										},
+									},
+								);
+							}
+						}}
+						onCancel={() => setActiveSheet({ type: "add", section: null })}
+						isSubmitting={
+							projectMutations.create.isPending ||
+							projectMutations.update.isPending
+						}
+						submitLabel={
+							activeSheet.type === "edit" ? "Save Changes" : "Add Project"
+						}
+					/>
+				)}
+			</BottomSheet>
+
+			{/* AI Optimization Bottom Sheet */}
+			<BottomSheet
+				open={aiOptimization !== null}
+				onOpenChange={(open) => {
+					if (!open) {
+						setAiOptimization(null);
+					}
+				}}
+				title="AI Optimization"
+				description="Enhance your description with AI-powered suggestions"
+				footer={
+					<>
+						<Button
+							variant="outline"
+							onClick={handleRegenerateAi}
+							disabled={optimizeMutation.isPending}
+							className="flex-1"
 						>
-							<div>
-								<div className="font-medium text-foreground">
-									{item.institution}
-								</div>
-								<div className="text-xs text-muted-foreground">
-									{item.degree} · {item.start_date} -{" "}
-									{item.end_date || "Present"}
-								</div>
+							Regenerate
+						</Button>
+						<Button
+							onClick={handleApplyAiOptimization}
+							disabled={
+								optimizeMutation.isPending || workMutations.update.isPending
+							}
+							className="flex-1"
+						>
+							Apply
+						</Button>
+					</>
+				}
+			>
+				{aiOptimization && (
+					<div className="space-y-6">
+						{/* Original */}
+						<div>
+							<Label className="text-sm font-medium mb-2 block">Original</Label>
+							<div className="rounded-md bg-muted p-3 text-sm">
+								{aiOptimization.original || "No description"}
 							</div>
-							<Button
-								size="sm"
-								variant="ghost"
-								onClick={() => mutations.remove.mutate(item.id)}
-								disabled={mutations.remove.isPending}
-							>
-								Delete
-							</Button>
 						</div>
-					))}
-				</div>
-			)}
-		</div>
-	);
-}
 
-function SkillList({
-	items,
-	cvId,
-	mutations,
-}: {
-	items: Array<{ id: number; name: string; category?: string | null }>;
-	cvId: number;
-	mutations: ReturnType<typeof useSkillMutations>;
-}) {
-	const [draft, setDraft] = useState("");
-	const add = () => {
-		if (!draft) return;
-		mutations.create.mutate({ cv_id: cvId, name: draft });
-		setDraft("");
-	};
-
-	return (
-		<div className="space-y-2">
-			{items.length === 0 && (
-				<p className="text-muted-foreground">No skills yet.</p>
-			)}
-			<div className="flex gap-2">
-				<Input
-					value={draft}
-					onChange={(e) => setDraft(e.target.value)}
-					placeholder="e.g., React"
-				/>
-				<Button size="sm" onClick={add}>
-					Add
-				</Button>
-			</div>
-			{items.length > 0 && (
-				<div className="flex flex-wrap gap-2">
-					{items.map((item) => (
-						<span
-							key={item.id}
-							className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm"
-						>
-							{item.name}
-							<button
-								onClick={() => mutations.remove.mutate(item.id)}
-								className="text-muted-foreground text-xs"
-								disabled={mutations.remove.isPending}
-							>
-								×
-							</button>
-						</span>
-					))}
-				</div>
-			)}
-		</div>
-	);
-}
-
-function ProjectList({
-	items,
-	cvId,
-	mutations,
-}: {
-	items: Array<{ id: number; name: string; stack: string }>;
-	cvId: number;
-	mutations: ReturnType<typeof useProjectMutations>;
-}) {
-	const [draft, setDraft] = useState({ name: "", stack: "" });
-	const add = () => {
-		if (!draft.name) return;
-		mutations.create.mutate({
-			cv_id: cvId,
-			name: draft.name,
-			technologies: draft.stack || undefined,
-		});
-		setDraft({ name: "", stack: "" });
-	};
-
-	return (
-		<div className="space-y-2">
-			{items.length === 0 && (
-				<p className="text-muted-foreground">No projects yet.</p>
-			)}
-			<div className="space-y-1">
-				<Label className="text-xs">Project name</Label>
-				<Input
-					value={draft.name}
-					onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-				/>
-				<Label className="text-xs">Stack / description</Label>
-				<Input
-					value={draft.stack}
-					onChange={(e) => setDraft({ ...draft, stack: e.target.value })}
-					placeholder="React, Node, Postgres"
-				/>
-				<Button size="sm" className="mt-2" onClick={add}>
-					Add project
-				</Button>
-			</div>
-			{items.length > 0 && (
-				<div className="space-y-2">
-					{items.map((item) => (
-						<div
-							key={item.id}
-							className="rounded-lg border px-3 py-2 flex items-center justify-between"
-						>
-							<div>
-								<div className="font-medium text-foreground">{item.name}</div>
-								<div className="text-xs text-muted-foreground">
-									{item.stack}
+						{/* AI Optimized */}
+						<div>
+							<Label className="text-sm font-medium mb-2 block">
+								AI Optimized
+							</Label>
+							{optimizeMutation.isPending ? (
+								<div className="space-y-2">
+									<Skeleton className="h-4 w-full" />
+									<Skeleton className="h-4 w-full" />
+									<Skeleton className="h-4 w-3/4" />
+									<p className="text-xs text-muted-foreground mt-2">
+										Generating AI-powered suggestions...
+									</p>
 								</div>
-							</div>
-							<Button
-								size="sm"
-								variant="ghost"
-								onClick={() => mutations.remove.mutate(item.id)}
-								disabled={mutations.remove.isPending}
-							>
-								Delete
-							</Button>
+							) : optimizeMutation.isError ? (
+								<div className="rounded-md bg-destructive/10 border border-destructive/20 p-4 text-sm">
+									<p className="text-destructive font-medium mb-2">
+										Failed to optimize
+									</p>
+									<p className="text-muted-foreground text-xs">
+										{optimizeMutation.error?.message ||
+											"Please check that GROQ_API_KEY is configured in the backend"}
+									</p>
+								</div>
+							) : (
+								<Textarea
+									value={aiOptimization.optimized}
+									onChange={(e) =>
+										setAiOptimization((prev) =>
+											prev ? { ...prev, optimized: e.target.value } : null,
+										)
+									}
+									rows={10}
+									className="resize-none"
+									placeholder="AI-optimized description will appear here..."
+								/>
+							)}
 						</div>
-					))}
+					</div>
+				)}
+			</BottomSheet>
+
+			<BottomSheet
+				open={summarySheetOpen}
+				onOpenChange={(open) => {
+					if (!open) {
+						setSummarySheetOpen(false);
+					}
+				}}
+				title="AI Summary"
+				description="Generate a professional summary using your current details."
+				footer={
+					<>
+						<Button
+							variant="outline"
+							onClick={handleRegenerateSummaryAi}
+							disabled={generateSummaryPreview.isPending}
+							className="flex-1"
+						>
+							Regenerate
+						</Button>
+						<Button
+							onClick={handleApplySummaryAi}
+							disabled={generateSummaryPreview.isPending}
+							className="flex-1"
+						>
+							Apply
+						</Button>
+					</>
+				}
+			>
+				<div className="space-y-6">
+					<div>
+						<Label className="text-sm font-medium mb-2 block">Original</Label>
+						<div className="rounded-md bg-muted p-3 text-sm">
+							{summaryAi.original || "No summary provided"}
+						</div>
+					</div>
+
+					<div>
+						<Label className="text-sm font-medium mb-2 block">
+							AI Generated
+						</Label>
+						{generateSummaryPreview.isPending ? (
+							<div className="space-y-2">
+								<Skeleton className="h-4 w-full" />
+								<Skeleton className="h-4 w-5/6" />
+								<Skeleton className="h-4 w-3/4" />
+								<p className="text-xs text-muted-foreground mt-2">
+									Generating summary…
+								</p>
+							</div>
+						) : generateSummaryPreview.isError ? (
+							<div className="rounded-md bg-destructive/10 border border-destructive/20 p-4 text-sm">
+								<p className="text-destructive font-medium mb-2">
+									Failed to generate
+								</p>
+								<p className="text-muted-foreground text-xs">
+									{generateSummaryPreview.error?.message ||
+										"Please check that the AI service is configured."}
+								</p>
+							</div>
+						) : (
+							<Textarea
+								value={summaryAi.generated}
+								onChange={(e) =>
+									setSummaryAi((prev) => ({
+										...prev,
+										generated: e.target.value,
+									}))
+								}
+								rows={10}
+								className="resize-none"
+								placeholder="AI-generated summary will appear here..."
+							/>
+						)}
+					</div>
 				</div>
-			)}
+			</BottomSheet>
 		</div>
 	);
 }

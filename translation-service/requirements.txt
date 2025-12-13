@@ -1,0 +1,38 @@
+# Web framework
+fastapi==0.115.6
+uvicorn[standard]==0.30.6
+
+# Configuration & validation
+pydantic==2.10.4
+pydantic-settings==2.7.0
+email-validator==2.2.0
+typing_extensions==4.15.0
+
+# ML / NLP
+transformers==4.47.1
+torch==2.1.2
+sentencepiece==0.2.0
+numpy==1.26.4
+
+# HTTP & async stack (explicit to avoid resolver surprises)
+anyio==4.12.0
+h11==0.16.0
+httpcore==1.0.9
+httpx==0.28.1
+
+# Hugging Face + utilities
+hf-xet==1.2.0
+filelock==3.20.0
+fsspec==2025.12.0
+tqdm==4.67.1
+packaging==25.0
+PyYAML==6.0.3
+
+# CLI / runtime helpers (pulled by uvicorn[standard], pinned for safety)
+click==8.3.1
+shellingham==1.5.4
+typer-slim==0.20.0
+
+# TLS / networking
+certifi==2025.11.12
+idna==3.11

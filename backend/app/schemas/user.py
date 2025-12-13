@@ -6,6 +6,7 @@ from pydantic import BaseModel, EmailStr, ConfigDict
 class UserBase(BaseModel):
     email: EmailStr
     full_name: str | None = None
+    profile_picture_url: str | None = None
     is_active: bool = True
     is_superuser: bool = False
 

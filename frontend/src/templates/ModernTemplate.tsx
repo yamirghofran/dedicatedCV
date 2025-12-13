@@ -16,16 +16,42 @@ const sectionTitle = {
 	marginBottom: 8,
 };
 
+const bulletListStyle = {
+	paddingLeft: 22,
+	marginTop: 6,
+	marginBottom: 0,
+	listStyleType: "disc",
+};
+const bulletItemStyle = { fontSize: 15, lineHeight: 1.5, color: "#0f172a" };
+
+function renderBullets(text?: string | null) {
+	if (!text) return null;
+	const bullets = text
+		.split(/\r?\n/)
+		.map((line) => line.trim().replace(/^[-•]\s*/, ""))
+		.filter(Boolean);
+	if (!bullets.length) return null;
+	return (
+		<ul style={bulletListStyle}>
+			{bullets.map((b) => (
+				<li key={b} style={bulletItemStyle}>
+					{b}
+				</li>
+			))}
+		</ul>
+	);
+}
+
 export function ModernTemplate({ cv }: Props) {
 	return (
 		<div
 			style={{
-					...base,
-					background: "#f8fafc",
-					padding: 36,
-					display: "grid",
-					gap: 18,
-				}}
+				...base,
+				background: "#f8fafc",
+				padding: 36,
+				display: "grid",
+				gap: 18,
+			}}
 		>
 			<header
 				style={{
@@ -100,9 +126,7 @@ export function ModernTemplate({ cv }: Props) {
 								<div style={xs}>
 									{w.company} {w.location ? `• ${w.location}` : ""}
 								</div>
-								{w.description && (
-									<p style={{ ...small, marginTop: 4 }}>{w.description}</p>
-								)}
+								{renderBullets(w.description)}
 							</div>
 						))}
 					</div>
@@ -188,7 +212,7 @@ export function ModernTemplate({ cv }: Props) {
 										fontWeight: 600,
 									}}
 								>
-									<span>{p.name || (p as any).title}</span>
+									<span>{p.name}</span>
 									{(p.start_date || p.end_date) && (
 										<span style={xs}>
 											{p.start_date || ""} {p.end_date ? `- ${p.end_date}` : ""}
@@ -196,9 +220,7 @@ export function ModernTemplate({ cv }: Props) {
 									)}
 								</div>
 								{p.technologies && <div style={xs}>{p.technologies}</div>}
-								{p.description && (
-									<p style={{ ...small, marginTop: 4 }}>{p.description}</p>
-								)}
+								{renderBullets(p.description)}
 							</div>
 						))}
 					</div>

@@ -1,8 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { ArrowUpRight } from "lucide-react";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { AuthButton } from "@/components/auth/AuthButton";
 import { useLogin } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/auth/login")({
@@ -30,63 +29,57 @@ function LoginPage() {
 	};
 
 	return (
-		<div className="flex min-h-screen items-center justify-center bg-background px-4">
-			<div className="w-full max-w-md space-y-8">
-				<div className="flex flex-col items-center space-y-2 text-center">
-					<h1 className="text-3xl font-bold">Welcome Back</h1>
-					<p className="text-muted-foreground">
-						Sign in to continue building your resume
-					</p>
-				</div>
-
-				<form onSubmit={handleSubmit} className="space-y-6">
-					<div className="space-y-4">
-						<div className="space-y-2">
-							<Label htmlFor="email">Email</Label>
-							<Input
-								id="email"
-								type="email"
-								placeholder="you@example.com"
-								value={email}
-								onChange={(e) => setEmail(e.target.value)}
-								required
-							/>
-						</div>
-
-						<div className="space-y-2">
-							<Label htmlFor="password">Password</Label>
-							<Input
-								id="password"
-								type="password"
-								placeholder="Enter your password"
-								value={password}
-								onChange={(e) => setPassword(e.target.value)}
-								required
-							/>
-						</div>
-					</div>
-
-					{error && (
-						<div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-							Invalid email or password. Please try again.
-						</div>
-					)}
-
-					<Button type="submit" className="w-full" disabled={isPending}>
-						{isPending ? "Signing In..." : "Sign In"}
-					</Button>
-
-					<p className="text-center text-sm text-muted-foreground">
-						Don't have an account?{" "}
-						<Link
-							to="/auth/register"
-							className="font-medium text-primary hover:underline"
-						>
-							Sign Up
-						</Link>
-					</p>
-				</form>
+		<div className="w-full max-w-sm mx-auto">
+			<div className="text-center mb-6">
+				<h1 className="text-2xl font-normal">Welcome back</h1>
+				<p className="text-gray-500 font-light">Login with your details</p>
 			</div>
+			<form onSubmit={handleSubmit} className="space-y-4">
+				<div>
+					<input
+						type="email"
+						placeholder="Email"
+						value={email}
+						onChange={(e) => setEmail(e.target.value)}
+						required
+						className="mt-1 block w-full px-6 py-3 bg-transparent border border-gray-300 rounded-full focus:outline-none sm:text-sm"
+					/>
+				</div>
+				<div>
+					<input
+						type="password"
+						placeholder="Password"
+						value={password}
+						onChange={(e) => setPassword(e.target.value)}
+						required
+						className="mt-1 block w-full px-6 py-3 bg-transparent border border-gray-300 rounded-full focus:outline-none sm:text-sm"
+					/>
+				</div>
+				{error && (
+					<div className="rounded-md bg-red-50 p-3 text-sm text-red-600">
+						Invalid email or password. Please try again.
+					</div>
+				)}
+				<AuthButton
+					type="submit"
+					variant="dark"
+					size="default"
+					loading={isPending}
+					icon={<ArrowUpRight />}
+					className="w-full"
+				>
+					{isPending ? "Signing In..." : "Login"}
+				</AuthButton>
+			</form>
+			<p className="text-center text-sm text-gray-500 mt-6">
+				Don't have an account?{" "}
+				<Link
+					to="/auth/register"
+					className="font-medium text-black hover:text-gray-800 cursor-pointer"
+				>
+					Sign up
+				</Link>
+			</p>
 		</div>
 	);
 }

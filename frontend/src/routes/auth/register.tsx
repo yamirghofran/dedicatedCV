@@ -1,8 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { ArrowUpRight } from "lucide-react";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { AuthButton } from "@/components/auth/AuthButton";
 import { useRegister } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/auth/register")({
@@ -59,86 +58,79 @@ function RegisterPage() {
 	};
 
 	return (
-		<div className="flex min-h-screen items-center justify-center bg-background px-4">
-			<div className="w-full max-w-md space-y-8">
-				<div className="flex flex-col items-center space-y-2 text-center">
-					<h1 className="text-3xl font-bold">Create Account</h1>
-					<p className="text-muted-foreground">
-						Start building your professional resume
-					</p>
-				</div>
-
-				<form onSubmit={handleSubmit} className="space-y-6">
-					<div className="space-y-4">
-						<div className="space-y-2">
-							<Label htmlFor="email">
-								Email <span className="text-destructive">*</span>
-							</Label>
-							<Input
-								id="email"
-								type="email"
-								placeholder="you@example.com"
-								value={email}
-								onChange={(e) => setEmail(e.target.value)}
-								className={errors.email ? "border-destructive" : ""}
-							/>
-							{errors.email && (
-								<p className="text-sm text-destructive">{errors.email}</p>
-							)}
-						</div>
-
-						<div className="space-y-2">
-							<Label htmlFor="password">
-								Password <span className="text-destructive">*</span>
-							</Label>
-							<Input
-								id="password"
-								type="password"
-								placeholder="Min. 8 characters"
-								value={password}
-								onChange={(e) => setPassword(e.target.value)}
-								className={errors.password ? "border-destructive" : ""}
-							/>
-							{errors.password && (
-								<p className="text-sm text-destructive">{errors.password}</p>
-							)}
-						</div>
-
-						<div className="space-y-2">
-							<Label htmlFor="fullName">Full Name (Optional)</Label>
-							<Input
-								id="fullName"
-								type="text"
-								placeholder="John Doe"
-								value={fullName}
-								onChange={(e) => setFullName(e.target.value)}
-							/>
-						</div>
-					</div>
-
-					{error && (
-						<div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-							{(error as any)?.data?.detail ||
-								error.message ||
-								"Registration failed. Please try again."}
-						</div>
-					)}
-
-					<Button type="submit" className="w-full" disabled={isPending}>
-						{isPending ? "Creating Account..." : "Create Account"}
-					</Button>
-
-					<p className="text-center text-sm text-muted-foreground">
-						Already have an account?{" "}
-						<Link
-							to="/auth/login"
-							className="font-medium text-primary hover:underline"
-						>
-							Log In
-						</Link>
-					</p>
-				</form>
+		<div className="w-full max-w-sm mx-auto">
+			<div className="text-center mb-6">
+				<h1 className="text-2xl font-normal">Create an account</h1>
+				<p className="text-gray-500">Start making CVs</p>
 			</div>
+			<form onSubmit={handleSubmit} className="space-y-4">
+				<div>
+					<input
+						type="text"
+						placeholder="Full Name"
+						value={fullName}
+						onChange={(e) => setFullName(e.target.value)}
+						className="mt-1 block w-full px-6 py-3 bg-transparent border border-gray-300 rounded-full focus:outline-none  focus:border-gray-400 sm:text-sm"
+					/>
+				</div>
+				<div>
+					<input
+						type="email"
+						placeholder="Email"
+						value={email}
+						onChange={(e) => setEmail(e.target.value)}
+						required
+						className={`mt-1 block w-full px-6 py-3 bg-transparent border rounded-full focus:outline-none  focus:border-gray-400 sm:text-sm ${
+							errors.email ? "border-red-500" : "border-gray-300"
+						}`}
+					/>
+					{errors.email && (
+						<p className="text-sm text-red-600 mt-1">{errors.email}</p>
+					)}
+				</div>
+				<div>
+					<input
+						type="password"
+						placeholder="Password"
+						value={password}
+						onChange={(e) => setPassword(e.target.value)}
+						required
+						className={`mt-1 block w-full px-6 py-3 bg-transparent border rounded-full focus:outline-none  focus:border-gray-400 sm:text-sm ${
+							errors.password ? "border-red-500" : "border-gray-300"
+						}`}
+					/>
+					{errors.password && (
+						<p className="text-sm text-red-600 mt-1">{errors.password}</p>
+					)}
+				</div>
+				{error && (
+					<div className="rounded-md bg-red-50 p-3 text-sm text-red-600">
+						{(error as { data?: { detail?: string } } | undefined)?.data
+							?.detail ||
+							error.message ||
+							"Registration failed. Please try again."}
+					</div>
+				)}
+				<AuthButton
+					type="submit"
+					variant="dark"
+					size="default"
+					loading={isPending}
+					icon={<ArrowUpRight />}
+					className="w-full"
+				>
+					{isPending ? "Creating Account..." : "Sign Up"}
+				</AuthButton>
+			</form>
+			<p className="text-center text-sm text-gray-500 mt-6">
+				Already have an account?{" "}
+				<Link
+					to="/auth/login"
+					className="font-medium text-black hover:text-gray-800 cursor-pointer"
+				>
+					Login
+				</Link>
+			</p>
 		</div>
 	);
 }

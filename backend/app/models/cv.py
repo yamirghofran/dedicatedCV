@@ -29,3 +29,6 @@ class CV(Base, BaseModel):
     projects = relationship(
         "Project", back_populates="cv", cascade="all, delete-orphan"
     )
+    share_links = relationship(
+        "ShareLink", back_populates="cv", cascade="all, delete-orphan"
+    )

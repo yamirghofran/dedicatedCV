@@ -26,11 +26,11 @@ if ! docker info > /dev/null 2>&1; then
 else
     echo "🐳 Starting PostgreSQL with Docker..."
     docker-compose up -d
-    
+
     # Wait for PostgreSQL to be ready
     echo "⏳ Waiting for PostgreSQL to be ready..."
     sleep 5
-    
+
     # Run migrations
     echo "🔄 Running database migrations..."
     uv run alembic upgrade head

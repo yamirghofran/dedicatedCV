@@ -43,8 +43,7 @@ type HighlightContextType<T extends string> = {
 };
 
 const HighlightContext = React.createContext<
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	HighlightContextType<any> | undefined
+	HighlightContextType<string> | undefined
 >(undefined);
 
 function useHighlight<T extends string>(): HighlightContextType<T> {
@@ -327,8 +326,11 @@ function Highlight<T extends React.ElementType = "div">({
 				? controlledItems
 					? render(children)
 					: render(
-							React.Children.map(children, (child, index) => (
-								<HighlightItem key={index} className={props?.itemsClassName}>
+							React.Children.map(children, (child) => (
+								<HighlightItem
+									key={child.key ?? undefined}
+									className={props?.itemsClassName}
+								>
 									{child}
 								</HighlightItem>
 							)),

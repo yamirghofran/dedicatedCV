@@ -22,6 +22,8 @@ dependencies = [
     "azure-monitor-opentelemetry>=1.2.0",
     "opentelemetry-instrumentation-fastapi>=0.48b0",
     "opentelemetry-instrumentation-sqlalchemy>=0.48b0",
+    "groq>=0.11.0",
+    "azure-storage-blob>=12"
 ]
 
 [project.optional-dependencies]
@@ -44,3 +46,8 @@ build-backend = "setuptools.build_meta"
 where = ["."]
 include = ["app*"]
 exclude = ["tests*", "alembic*"]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.14.7",
+]

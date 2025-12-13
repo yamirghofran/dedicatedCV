@@ -276,10 +276,9 @@ function TooltipOverlay() {
 			refs.setReference(referenceElRef.current);
 			update();
 		}
-	}, [referenceElRef, refs, update, rendered.data]);
+	}, [referenceElRef, refs, update]);
 
 	const ready = x != null && y != null;
-	const Component = rendered.data?.contentAsChild ? Slot : motion.div;
 	const resolvedSide = getResolvedSide(context.placement);
 
 	return (
@@ -297,7 +296,7 @@ function TooltipOverlay() {
 							top: 0,
 							left: 0,
 							zIndex: 50,
-							transform: `translate3d(${x!}px, ${y!}px, 0)`,
+							transform: `translate3d(${x ?? 0}px, ${y ?? 0}px, 0)`,
 						}}
 					>
 						<FloatingProvider value={{ context, arrowRef }}>
@@ -308,42 +307,63 @@ function TooltipOverlay() {
 									open: rendered.open,
 								}}
 							>
-								<Component
-									data-slot="tooltip-content"
-									data-side={resolvedSide}
-									data-align={rendered.data.align}
-									data-state={rendered.open ? "open" : "closed"}
-									layoutId={`tooltip-content-${globalId}`}
-									initial={{
-										opacity: 0,
-										scale: 0,
-										...initialFromSide(rendered.data.side),
-									}}
-									animate={
-										rendered.open
+								{(() => {
+									const contentProps = rendered.data?.contentProps ?? {};
+									const {
+										children: contentChildren,
+										style: contentStyle,
+										...restContentProps
+									} = contentProps;
+
+									const baseMotionProps: HTMLMotionProps<"div"> &
+										Record<string, unknown> = {
+										"data-slot": "tooltip-content",
+										"data-side": resolvedSide,
+										"data-align": rendered.data.align,
+										"data-state": rendered.open ? "open" : "closed",
+										layoutId: `tooltip-content-${globalId}`,
+										initial: {
+											opacity: 0,
+											scale: 0,
+											...initialFromSide(rendered.data.side),
+										},
+										animate: rendered.open
 											? { opacity: 1, scale: 1, x: 0, y: 0 }
 											: {
 													opacity: 0,
 													scale: 0,
 													...initialFromSide(rendered.data.side),
-												}
+												},
+										exit: {
+											opacity: 0,
+											scale: 0,
+											...initialFromSide(rendered.data.side),
+										},
+										onAnimationComplete: () => {
+											if (!rendered.open)
+												setRendered({ data: null, open: false });
+										},
+										transition,
+										...restContentProps,
+										style: {
+											position: "relative",
+											...(contentStyle || {}),
+										},
+									};
+
+									if (rendered.data.contentAsChild) {
+										const childElement = React.isValidElement(contentChildren)
+											? contentChildren
+											: null;
+										return <Slot {...baseMotionProps}>{childElement}</Slot>;
 									}
-									exit={{
-										opacity: 0,
-										scale: 0,
-										...initialFromSide(rendered.data.side),
-									}}
-									onAnimationComplete={() => {
-										if (!rendered.open)
-											setRendered({ data: null, open: false });
-									}}
-									transition={transition}
-									{...rendered.data.contentProps}
-									style={{
-										position: "relative",
-										...(rendered.data.contentProps?.style || {}),
-									}}
-								/>
+
+									return (
+										<motion.div {...baseMotionProps}>
+											{contentChildren}
+										</motion.div>
+									);
+								})()}
 							</RenderedTooltipProvider>
 						</FloatingProvider>
 					</div>
@@ -420,7 +440,7 @@ function TooltipContent({ asChild = false, ...props }: TooltipContentProps) {
 			lastPropsRef.current = props;
 			setProps(props);
 		}
-	}, [props, setProps]);
+	});
 
 	React.useEffect(() => {
 		setAsChild(asChild);
@@ -536,10 +556,33 @@ function TooltipTrigger({
 		[hideTooltip, onBlur],
 	);
 
-	const Component = asChild ? Slot : motion.div;
+	const { children, ...restProps } = props;
+
+	if (asChild) {
+		const childElement = React.isValidElement(children) ? children : null;
+		if (!childElement) return null;
+
+		return (
+			<Slot
+				ref={triggerRef}
+				onPointerDown={handlePointerDown}
+				onMouseEnter={handleMouseEnter}
+				onMouseLeave={handleMouseLeave}
+				onFocus={handleFocus}
+				onBlur={handleBlur}
+				data-slot="tooltip-trigger"
+				data-side={side}
+				data-align={align}
+				data-state={currentTooltip?.id === id ? "open" : "closed"}
+				{...restProps}
+			>
+				{childElement}
+			</Slot>
+		);
+	}
 
 	return (
-		<Component
+		<motion.div
 			ref={triggerRef}
 			onPointerDown={handlePointerDown}
 			onMouseEnter={handleMouseEnter}
@@ -550,8 +593,10 @@ function TooltipTrigger({
 			data-side={side}
 			data-align={align}
 			data-state={currentTooltip?.id === id ? "open" : "closed"}
-			{...props}
-		/>
+			{...restProps}
+		>
+			{children}
+		</motion.div>
 	);
 }
 

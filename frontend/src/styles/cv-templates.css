@@ -29,10 +29,13 @@
 		background: white;
 	}
 	.no-print {
+		/* biome-ignore lint/complexity/noImportantStyles: Required to hide non-print elements */
 		display: none !important;
 	}
 	.cv-template {
+		/* biome-ignore lint/complexity/noImportantStyles: Remove styling when printing */
 		box-shadow: none !important;
+		/* biome-ignore lint/complexity/noImportantStyles: Remove styling when printing */
 		border: none !important;
 	}
 }

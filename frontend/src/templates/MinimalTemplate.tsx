@@ -16,16 +16,42 @@ const sectionTitle = {
 	marginBottom: 8,
 };
 
+const bulletListStyle = {
+	paddingLeft: 20,
+	marginTop: 6,
+	marginBottom: 0,
+	listStyleType: "disc",
+};
+const bulletItemStyle = { ...xs, color: "#111827", marginBottom: 4 };
+
+function renderBullets(text?: string | null) {
+	if (!text) return null;
+	const bullets = text
+		.split(/\r?\n/)
+		.map((line) => line.trim().replace(/^[-•]\s*/, ""))
+		.filter(Boolean);
+	if (!bullets.length) return null;
+	return (
+		<ul style={bulletListStyle}>
+			{bullets.map((b) => (
+				<li key={b} style={bulletItemStyle}>
+					{b}
+				</li>
+			))}
+		</ul>
+	);
+}
+
 export function MinimalTemplate({ cv }: Props) {
 	return (
 		<div
 			style={{
-					...base,
-					background: "#fff",
-					padding: 36,
-					display: "grid",
-					gap: 14,
-				}}
+				...base,
+				background: "#fff",
+				padding: 36,
+				display: "grid",
+				gap: 14,
+			}}
 		>
 			<header style={{ marginBottom: 8 }}>
 				<h1 style={h1}>{cv.full_name}</h1>
@@ -65,6 +91,7 @@ export function MinimalTemplate({ cv }: Props) {
 								<div style={xs}>
 									{w.start_date} - {w.end_date || "Present"}
 								</div>
+								{renderBullets(w.description)}
 							</li>
 						))}
 					</ul>
@@ -102,10 +129,9 @@ export function MinimalTemplate({ cv }: Props) {
 					<ul style={{ paddingLeft: 16, margin: 0 }}>
 						{cv.projects.map((p) => (
 							<li key={p.id} style={{ marginBottom: 6 }}>
-								<div style={{ ...sm, fontWeight: 600 }}>
-									{p.name || (p as any).title}
-								</div>
+								<div style={{ ...sm, fontWeight: 600 }}>{p.name}</div>
 								{p.technologies && <div style={xs}>{p.technologies}</div>}
+								{renderBullets(p.description)}
 							</li>
 						))}
 					</ul>

@@ -72,7 +72,7 @@ Azure Application Insights integration provides:
    - Go to "Overview" section
    - Find "Connection String" (NOT Instrumentation Key)
    - Click "Copy to clipboard"
-   
+
    Format should be:
    ```
    InstrumentationKey=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx;IngestionEndpoint=https://...;LiveEndpoint=https://...
@@ -184,12 +184,12 @@ Expected output:
    ```bash
    # Health check
    curl http://localhost:8000/api/v1/health
-   
+
    # Create a user (if you have auth endpoints)
    curl -X POST http://localhost:8000/api/v1/auth/register \
      -H "Content-Type: application/json" \
      -d '{"email":"test@example.com","password":"testpass123"}'
-   
+
    # Generate some load
    for i in {1..50}; do
      curl http://localhost:8000/api/v1/health
@@ -268,7 +268,7 @@ Expected output:
 ```kusto
 requests
 | where timestamp > ago(24h)
-| summarize 
+| summarize
     Total = count(),
     Errors = countif(success == false),
     ErrorRate = (countif(success == false) * 100.0) / count()
@@ -288,7 +288,7 @@ requests
 ```kusto
 requests
 | where timestamp > ago(24h)
-| summarize 
+| summarize
     Average = avg(duration),
     P50 = percentile(duration, 50),
     P95 = percentile(duration, 95),
@@ -318,7 +318,7 @@ requests
 ```kusto
 requests
 | where timestamp > ago(1h)
-| summarize 
+| summarize
     AvgDuration = avg(duration),
     P95 = percentile(duration, 95),
     Count = count()
@@ -345,7 +345,7 @@ requests
 ```kusto
 dependencies
 | where timestamp > ago(1h) and type == "SQL"
-| summarize 
+| summarize
     AvgDuration = avg(duration),
     P95 = percentile(duration, 95),
     Count = count()
@@ -361,7 +361,7 @@ dependencies
 requests
 | where timestamp > ago(24h)
 | where name == "GET /api/v1/health"
-| summarize 
+| summarize
     Total = count(),
     Successful = countif(success == true)
 | extend UptimePercentage = (Successful * 100.0) / Total
@@ -404,7 +404,7 @@ Signal: Custom log search
 Query:
 requests
 | where timestamp > ago(5m)
-| summarize 
+| summarize
     Total = count(),
     Errors = countif(success == false)
 | extend ErrorRate = (Errors * 100.0) / Total

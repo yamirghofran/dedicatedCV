@@ -12,6 +12,7 @@ env:
   REGISTRY: dedicatedcvacr.azurecr.io
   FRONTEND_IMAGE: dedicatedcv-frontend
   BACKEND_IMAGE: dedicatedcv-backend
+  TRANSLATION_IMAGE: dedicatedcv-translation
 
 jobs:
   # ============================================
@@ -292,6 +293,17 @@ jobs:
           done
 
       - name: Production deployment summary
+      - name: Build and push translation image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./translation-service
+          file: ./translation-service/Dockerfile
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.TRANSLATION_IMAGE }}:latest
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.TRANSLATION_IMAGE }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.TRANSLATION_IMAGE }}:buildcache,mode=max
+
+      - name: Image digest
         run: |
           echo "### 🚀 Production Deployment Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY

@@ -69,20 +69,26 @@ function CVListPage() {
 	const emptyState = (
 		<Card className="border-dashed">
 			<CardHeader>
-				<CardTitle className="flex items-center gap-2">
-					<FileText className="h-5 w-5 text-muted-foreground" />
+				<CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+					<FileText className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
 					No CVs yet
 				</CardTitle>
-				<CardDescription>
+				<CardDescription className="text-xs md:text-sm">
 					Start by creating a CV or use a template to move faster.
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
-				<div className="flex gap-3">
-					<Link to="/app/cvs/new">
-						<Button>Create from scratch</Button>
+				<div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+					<Link to="/app/cvs/new" className="flex-1">
+						<Button className="w-full text-xs md:text-sm">
+							Create from scratch
+						</Button>
 					</Link>
-					<Button variant="outline" disabled>
+					<Button
+						variant="outline"
+						disabled
+						className="flex-1 text-xs md:text-sm"
+					>
 						Browse templates (coming soon)
 					</Button>
 				</div>
@@ -91,26 +97,29 @@ function CVListPage() {
 	);
 
 	return (
-		<div className="space-y-6">
-			<div className="flex items-center justify-between">
-				<div>
-					<h1 className="text-3xl font-bold">My CVs</h1>
-					<p className="text-muted-foreground mt-1">
+		<div className="space-y-4 md:space-y-6">
+			<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+				<div className="min-w-0">
+					<h1 className="text-2xl md:text-3xl font-bold">My CVs</h1>
+					<p className="text-sm md:text-base text-muted-foreground mt-1">
 						Manage all of your resumes in one place.
 					</p>
 				</div>
-				<Link to="/app/cvs/new">
-					<Button className="gap-2">
+				<Link to="/app/cvs/new" className="w-full sm:w-auto">
+					<Button className="gap-2 w-full sm:w-auto text-xs md:text-sm">
 						<Plus className="h-4 w-4" />
-						Create New CV
+						<span className="hidden sm:inline">Create New CV</span>
+						<span className="sm:hidden">Create CV</span>
 					</Button>
 				</Link>
 			</div>
 
-			{message && <p className="text-sm text-muted-foreground">{message}</p>}
+			{message && (
+				<p className="text-xs md:text-sm text-muted-foreground">{message}</p>
+			)}
 
 			{isLoading ? (
-				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+				<div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
 					{[1, 2, 3].map((i) => (
 						<Card key={i} className="animate-pulse">
 							<CardHeader className="space-y-2">
@@ -125,30 +134,36 @@ function CVListPage() {
 				</div>
 			) : isError ? (
 				<Card className="border-dashed">
-					<CardContent className="py-8 text-sm text-destructive text-center">
+					<CardContent className="py-8 text-xs md:text-sm text-destructive text-center">
 						Unable to load CVs. Please retry.
 					</CardContent>
 				</Card>
 			) : cvs && cvs.length > 0 ? (
-				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+				<div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
 					{cvs.map((cv) => (
-						<Card key={cv.id} className="transition-none">
-							<CardHeader>
-								<div className="flex items-start justify-between">
-									<div className="flex items-start gap-3 flex-1">
-										<div className="p-2 bg-primary/10 rounded-lg">
-											<FileText className="h-5 w-5 text-primary" />
+						<Card key={cv.id} className="transition-none flex flex-col">
+							<CardHeader className="pb-3">
+								<div className="flex items-start justify-between gap-2">
+									<div className="flex items-start gap-2 flex-1 min-w-0">
+										<div className="p-2 bg-primary/10 rounded-lg flex-shrink-0">
+											<FileText className="h-4 w-4 md:h-5 md:w-5 text-primary" />
 										</div>
 										<div className="flex-1 min-w-0">
-											<CardTitle className="truncate">{cv.title}</CardTitle>
-											<CardDescription className="truncate">
+											<CardTitle className="truncate text-base">
+												{cv.title}
+											</CardTitle>
+											<CardDescription className="truncate text-xs md:text-sm">
 												{cv.full_name}
 											</CardDescription>
 										</div>
 									</div>
 									<DropdownMenu>
 										<DropdownMenuTrigger asChild>
-											<Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+											<Button
+												variant="ghost"
+												size="sm"
+												className="h-8 w-8 p-0 flex-shrink-0"
+											>
 												<MoreVertical className="h-4 w-4" />
 											</Button>
 										</DropdownMenuTrigger>
@@ -168,7 +183,7 @@ function CVListPage() {
 												disabled={isDuplicating}
 												className="cursor-pointer"
 											>
-												<Copy className="h-4 w-4 mr-2" />
+												<Copy className="h-4 w-4 " />
 												Duplicate
 											</DropdownMenuItem>
 											<DropdownMenuItem>
@@ -183,30 +198,33 @@ function CVListPage() {
 											</DropdownMenuItem>
 											<DropdownMenuItem
 												onClick={() => handleDelete(cv.id, cv.title)}
-												className="text-destructive cursor-pointer"
+												className="text-destructive cursor-pointer color-destructive hover:color-destructive-hover"
 											>
-												<Trash2 className="h-4 w-4 mr-2" />
+												<Trash2 className="h-4 w-4 color-destructive hover:color-destructive-hover" />
 												Delete
 											</DropdownMenuItem>
 										</DropdownMenuContent>
 									</DropdownMenu>
 								</div>
 							</CardHeader>
-							<CardContent>
-								<div className="space-y-2 text-sm text-muted-foreground">
+							<CardContent className="pb-3 flex-1">
+								<div className="space-y-1 text-xs md:text-sm text-muted-foreground">
 									<p className="truncate">{cv.email}</p>
 									{cv.summary && (
 										<p className="line-clamp-2 text-xs">{cv.summary}</p>
 									)}
 								</div>
 							</CardContent>
-							<CardFooter className="flex gap-2">
+							<CardFooter className="flex gap-2 pt-0">
 								<Link
 									to="/app/cvs/$id/edit"
 									params={{ id: cv.id.toString() }}
 									className="flex-1"
 								>
-									<Button variant="outline" className="w-full">
+									<Button
+										variant="outline"
+										className="w-full text-xs md:text-sm"
+									>
 										Edit
 									</Button>
 								</Link>
@@ -215,7 +233,10 @@ function CVListPage() {
 									params={{ id: cv.id.toString() }}
 									className="flex-1"
 								>
-									<Button variant="outline" className="w-full">
+									<Button
+										variant="outline"
+										className="w-full text-xs md:text-sm"
+									>
 										Preview
 									</Button>
 								</Link>

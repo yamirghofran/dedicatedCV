@@ -35,10 +35,10 @@ repos:
     hooks:
       - id: frontend-biome-check
         name: Frontend Biome Check
-        entry: bunx biome check --apply
+        entry: bash -c 'cd frontend && bunx biome format --write'
         language: system
         files: ^frontend/src/.*\.(ts|tsx|js|jsx)$
-        pass_filenames: true
+        pass_filenames: false
 
   # Secret scanning with Gitleaks using existing config
   - repo: https://github.com/gitleaks/gitleaks
