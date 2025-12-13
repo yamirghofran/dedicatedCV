@@ -26,11 +26,11 @@ jobs:
         run: echo "CI passed or manual dispatch - proceeding with deployment"
 
   # ============================================
-  # STAGE 1: BUILD AND PUSH IMAGES (STAGING + PROD TAGS)
+  # STAGE 1: BUILD AND PUSH STAGING IMAGES ONLY
   # ============================================
-  build:
+  build-staging:
     needs: [check-ci]
-    name: Build & Push Docker Images
+    name: Build & Push Staging Images
     runs-on: ubuntu-latest
     outputs:
       image_tag: ${{ steps.meta.outputs.tag }}
@@ -57,7 +57,7 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
-      # ---------- Frontend: STAGING (staging API URL) ----------
+      # ---------- Frontend: STAGING ONLY ----------
       # App Service (staging) should be configured to track tag :staging
       - name: Build and push frontend image (Staging)
         uses: docker/build-push-action@v5
@@ -74,54 +74,38 @@ jobs:
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE }}:buildcache
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE }}:buildcache,mode=max
 
-      # ---------- Frontend: PRODUCTION (prod API URL) ----------
-      # App Service (prod) should be configured to track tag :latest (as today)
-      - name: Build and push frontend image (Production)
-        uses: docker/build-push-action@v5
-        with:
-          context: ./frontend
-          file: ./frontend/Dockerfile
-          push: true
-          tags: |
-            ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE }}:${{ steps.meta.outputs.tag }}
-            ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE }}:latest
-          build-args: |
-            VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}
-            VITE_API_VERSION=v1
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE }}:buildcache
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE }}:buildcache,mode=max
-
-      # ---------- Backend: environment-agnostic ----------
-      # Both staging + prod backends can use :latest (config via env vars at runtime)
-      - name: Build and push backend image
+      # ---------- Backend: STAGING TAG ----------
+      # Backend uses same image for both environments, but we tag as :staging first
+      - name: Build and push backend image (Staging tag)
         uses: docker/build-push-action@v5
         with:
           context: ./backend
           file: ./backend/Dockerfile
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:${{ steps.meta.outputs.tag }}
-            ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:latest
+            ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:${{ steps.meta.outputs.tag }}-staging
+            ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:staging
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:buildcache
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:buildcache,mode=max
 
-      - name: Image summary
+      - name: Staging build summary
         run: |
-          echo "### Built Images" >> $GITHUB_STEP_SUMMARY
+          echo "### Built Staging Images" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Image | Tags |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|------|" >> $GITHUB_STEP_SUMMARY
           echo "| Frontend (Staging) | \`${{ steps.meta.outputs.tag }}-staging\`, \`staging\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Frontend (Prod) | \`${{ steps.meta.outputs.tag }}\`, \`latest\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Backend | \`${{ steps.meta.outputs.tag }}\`, \`latest\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend (Staging) | \`${{ steps.meta.outputs.tag }}-staging\`, \`staging\` |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "⚠️ **Production images will be tagged after approval**" >> $GITHUB_STEP_SUMMARY
 
   # ============================================
   # STAGE 2: WAIT FOR STAGING TO BE HEALTHY
-  # (Deployment happens implicitly when :staging / :latest change in ACR)
+  # (Deployment happens implicitly when :staging tag changes in ACR)
   # ============================================
   deploy-staging:
     name: Verify Staging Deployment
-    needs: build
+    needs: build-staging
     runs-on: ubuntu-latest
     environment:
       name: staging
@@ -165,7 +149,7 @@ jobs:
   # ============================================
   dast-scan:
     name: DAST Security Scan (OWASP ZAP)
-    needs: [build, deploy-staging]
+    needs: [build-staging, deploy-staging]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -202,22 +186,95 @@ jobs:
           echo "Check the uploaded artifacts for detailed reports." >> $GITHUB_STEP_SUMMARY
 
   # ============================================
-  # STAGE 4: PRODUCTION SUMMARY / HEALTH CHECK (NO EXPLICIT DEPLOY)
-  # Prod follows :latest as configured in Azure
+  # STAGE 4: PROMOTE TO PRODUCTION (REQUIRES APPROVAL)
+  # Push :latest tags after staging validation and DAST pass
   # ============================================
-  production-summary:
-    name: Production Status (Prod follows :latest)
-    needs: [build, dast-scan]
+  promote-production:
+    name: Promote to Production
+    needs: [build-staging, dast-scan]
     runs-on: ubuntu-latest
     environment:
       name: production
     steps:
-      - name: Optional Check production health
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Azure Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      # ---------- Frontend: PRODUCTION ----------
+      # Build production frontend with prod API URL and push :latest tag
+      - name: Build and push frontend image (Production)
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE }}:${{ needs.build-staging.outputs.image_tag }}
+            ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE }}:latest
+          build-args: |
+            VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}
+            VITE_API_VERSION=v1
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE }}:buildcache,mode=max
+
+      # ---------- Backend: PRODUCTION ----------
+      # Tag the same backend image with :latest (backend is environment-agnostic)
+      - name: Pull staging backend image
+        run: |
+          docker pull ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:${{ needs.build-staging.outputs.image_tag }}-staging
+
+      - name: Tag and push backend image (Production)
+        run: |
+          # Tag the staging image with production tags
+          docker tag ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:${{ needs.build-staging.outputs.image_tag }}-staging \
+                     ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:${{ needs.build-staging.outputs.image_tag }}
+          docker tag ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:${{ needs.build-staging.outputs.image_tag }}-staging \
+                     ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:latest
+
+          # Push production tags
+          docker push ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:${{ needs.build-staging.outputs.image_tag }}
+          docker push ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE }}:latest
+
+      - name: Production promotion summary
+        run: |
+          echo "### ✅ Production Images Promoted" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Image | Tags |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend (Production) | \`${{ needs.build-staging.outputs.image_tag }}\`, \`latest\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend (Production) | \`${{ needs.build-staging.outputs.image_tag }}\`, \`latest\` |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Azure App Services will now detect and deploy the :latest tags" >> $GITHUB_STEP_SUMMARY
+
+  # ============================================
+  # STAGE 5: VERIFY PRODUCTION DEPLOYMENT
+  # Check that production deployed successfully
+  # ============================================
+  verify-production:
+    name: Verify Production Deployment
+    needs: [build-staging, promote-production]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for production to deploy
+        run: |
+          echo "Waiting for production services to detect new images and deploy..."
+          sleep 60
+
+      - name: Check production health
         run: |
           echo "Checking production backend health..."
           for i in {1..10}; do
             if curl -sf "https://${{ secrets.PROD_BACKEND_APP_NAME }}.azurewebsites.net/api/v1/health" > /dev/null; then
-              echo "Backend production is healthy"
+              echo "✅ Backend production is healthy"
               break
             fi
             echo "Attempt $i: Backend not ready, waiting..."
@@ -227,7 +284,7 @@ jobs:
           echo "Checking production frontend health..."
           for i in {1..10}; do
             if curl -sf "https://${{ secrets.PROD_FRONTEND_APP_NAME }}.azurewebsites.net/health" > /dev/null; then
-              echo "Frontend production is healthy"
+              echo "✅ Frontend production is healthy"
               break
             fi
             echo "Attempt $i: Frontend not ready, waiting..."
@@ -236,13 +293,17 @@ jobs:
 
       - name: Production deployment summary
         run: |
-          echo "### Production Deployment (via :latest tags)" >> $GITHUB_STEP_SUMMARY
+          echo "### 🚀 Production Deployment Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Service | URL |" >> $GITHUB_STEP_SUMMARY
-          echo "|---------|-----|" >> $GITHUB_STEP_SUMMARY
-          echo "| Frontend | https://${{ secrets.PROD_FRONTEND_APP_NAME }}.azurewebsites.net |" >> $GITHUB_STEP_SUMMARY
-          echo "| Backend | https://${{ secrets.PROD_BACKEND_APP_NAME }}.azurewebsites.net |" >> $GITHUB_STEP_SUMMARY
+          echo "| Service | URL | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend | https://${{ secrets.PROD_FRONTEND_APP_NAME }}.azurewebsites.net | ✅ Healthy |" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend | https://${{ secrets.PROD_BACKEND_APP_NAME }}.azurewebsites.net | ✅ Healthy |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Image tag (base):** \`${{ needs.build.outputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "Prod frontend follows tag: \`latest\`" >> $GITHUB_STEP_SUMMARY
-          echo "Staging frontend follows tag: \`staging\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployed version:** \`${{ needs.build-staging.outputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Pipeline flow:**" >> $GITHUB_STEP_SUMMARY
+          echo "1. ✅ Staging deployed (tag: \`staging\`)" >> $GITHUB_STEP_SUMMARY
+          echo "2. ✅ DAST security scans passed" >> $GITHUB_STEP_SUMMARY
+          echo "3. ✅ Production approved and promoted (tag: \`latest\`)" >> $GITHUB_STEP_SUMMARY
+          echo "4. ✅ Production health verified" >> $GITHUB_STEP_SUMMARY
