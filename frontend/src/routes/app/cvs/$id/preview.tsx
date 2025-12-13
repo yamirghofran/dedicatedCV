@@ -227,7 +227,7 @@ function CVPreviewPlaceholder() {
 	return (
 		<div className="space-y-6">
 			{/* Header - Mobile Responsive */}
-			<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+			<div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 				<div className="flex-1 min-w-0">
 					<p className="text-sm text-muted-foreground uppercase tracking-wide">
 						Preview
@@ -260,12 +260,16 @@ function CVPreviewPlaceholder() {
 				</div>
 
 				{/* Action Buttons */}
-				<div className="flex gap-2 flex-wrap sm:flex-nowrap">
-					<Link to="/app/cvs/$id/edit" params={{ id }}>
+				<div className="grid grid-cols-2 gap-2 w-full sm:grid-cols-[auto_auto] sm:auto-rows-auto sm:items-start sm:justify-start sm:w-auto lg:flex lg:flex-wrap lg:justify-end lg:gap-3 lg:w-auto lg:flex-shrink-0">
+					<Link
+						to="/app/cvs/$id/edit"
+						params={{ id }}
+						className="col-span-2 sm:col-auto sm:w-auto"
+					>
 						<Button
 							variant="outline"
 							size={isMobile ? "sm" : "default"}
-							className="gap-2"
+							className="gap-2 w-full sm:w-auto"
 						>
 							<ArrowLeft className="h-4 w-4" />
 							{!isMobile && "Back to editor"}
@@ -274,7 +278,7 @@ function CVPreviewPlaceholder() {
 					<Button
 						variant="secondary"
 						size={isMobile ? "sm" : "default"}
-						className="gap-2"
+						className="gap-2 w-full sm:w-auto"
 						onClick={handleOpenAiSheet}
 					>
 						<Sparkles className="h-4 w-4" />
@@ -283,14 +287,21 @@ function CVPreviewPlaceholder() {
 					<Button
 						variant="outline"
 						size={isMobile ? "sm" : "default"}
-						className="gap-2"
+						className="gap-2 w-full sm:w-auto"
 						onClick={handleOpenTranslateSheet}
 					>
 						<Languages className="h-4 w-4" />
 						{!isMobile && "Translate"}
 					</Button>
-					<Link to="/app/cvs/$id/export" params={{ id }}>
-						<Button size={isMobile ? "sm" : "default"} className="gap-2">
+					<Link
+						to="/app/cvs/$id/export"
+						params={{ id }}
+						className="col-span-2 sm:col-auto sm:w-auto"
+					>
+						<Button
+							size={isMobile ? "sm" : "default"}
+							className="gap-2 w-full sm:w-auto"
+						>
 							<Download className="h-4 w-4" />
 							{!isMobile && "Go to export"}
 						</Button>
@@ -298,25 +309,15 @@ function CVPreviewPlaceholder() {
 				</div>
 			</div>
 
-			<Card style={{ maxWidth: "80vw" }}>
-				<CardHeader>
+			<Card className="w-full">
+				<CardHeader className="pb-4 sm:pb-6">
 					<CardTitle className="text-base md:text-lg">Preview</CardTitle>
 					<CardDescription className="text-xs md:text-sm">
 						A4 ratio preview; scroll if content overflows.
 					</CardDescription>
 				</CardHeader>
-				<CardContent>
-					<div
-						className="rounded-lg border border-dashed bg-muted p-6 print:bg-white "
-						style={{
-							// Even wider preview for maximum text size in PDF
-							width: 1200,
-							maxWidth: "80%",
-							aspectRatio: "8.5 / 11",
-							overflow: "auto",
-							margin: "0 auto",
-						}}
-					>
+				<CardContent className="flex justify-center">
+					<div className="w-full max-w-screen-lg sm:max-w-screen-xl mx-auto rounded-lg border border-dashed bg-muted p-3 sm:p-6 print:bg-white aspect-[8.5/11] overflow-auto shadow-sm">
 						<TemplateComponent cv={cv} />
 					</div>
 				</CardContent>
