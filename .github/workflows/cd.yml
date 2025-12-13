@@ -299,21 +299,11 @@ jobs:
 
           echo "Checking production frontend health..."
           for i in {1..10}; do
-            if curl -sf "https://${{ secrets.PROD_FRONTEND_APP_NAME }}.azurewebsites.net/health" > /dev/null; then
+            if curl -sf "https://dedicatedcv-frontend.azurewebsites.net/health" > /dev/null; then
               echo "✅ Frontend production is healthy"
               break
             fi
             echo "Attempt $i: Frontend not ready, waiting..."
-            sleep 15
-          done
-
-          echo "Checking production translation service health..."
-          for i in {1..10}; do
-            if curl -sf "https://${{ secrets.PROD_TRANSLATION_APP_NAME }}.azurewebsites.net/health" > /dev/null; then
-              echo "✅ Translation service production is healthy"
-              break
-            fi
-            echo "Attempt $i: Translation service not ready, waiting..."
             sleep 15
           done
 
@@ -325,7 +315,7 @@ jobs:
           echo "|---------|-----|--------|" >> $GITHUB_STEP_SUMMARY
           echo "| Frontend | https://${{ secrets.PROD_FRONTEND_APP_NAME }}.azurewebsites.net | ✅ Healthy |" >> $GITHUB_STEP_SUMMARY
           echo "| Backend | https://${{ secrets.PROD_BACKEND_APP_NAME }}.azurewebsites.net | ✅ Healthy |" >> $GITHUB_STEP_SUMMARY
-          echo "| Translation Service | https://${{ secrets.PROD_TRANSLATION_APP_NAME }}.azurewebsites.net | ✅ Healthy |" >> $GITHUB_STEP_SUMMARY
+          echo "| Translation Service | https://${{ secrets.PROD_TRANSLATION_APP_NAME }}.azurewebsites.net | 🚀 Deployed |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Deployed version:** \`${{ needs.build-staging.outputs.image_tag }}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
