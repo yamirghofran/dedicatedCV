@@ -222,10 +222,10 @@ class TranslationService:
         source = _normalize_language(input_language)
         target = _normalize_language(output_language)
 
-        if source == "en" and target == "es":
-            if not self.internal_client:
-                raise ValueError("Internal translation service is not configured")
-            return self.internal_client.translate_cv(cv, source, target)
+        # if source == "en" and target == "es":
+        #     if not self.internal_client:
+        #         raise ValueError("Internal translation service is not configured")
+        #     return self.internal_client.translate_cv(cv, source, target)
 
         if (
             source in self.SUPPORTED_EXTERNAL_LANGUAGES

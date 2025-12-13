@@ -74,7 +74,7 @@ function CVPreviewPlaceholder() {
 		{ label: "Italian", value: "it", disabled: false },
 	];
 	const translationSupportCopy =
-		"Supports English, Spanish, French, German, and Italian. English to Spanish uses a self-hosted model; other directions use external translation.";
+		"Supports English, Spanish, French, German, and Italian.";
 
 	const parsedRawScores = useMemo(() => {
 		const raw = scoreMutation.data?.raw;
